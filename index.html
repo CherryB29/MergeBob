@@ -100,7 +100,6 @@
 
         .nav-item { padding: 18px 10px; font-size: 16px; font-weight: 600; color: var(--main-text); border-bottom: 1px solid var(--line); cursor: pointer; display: flex; align-items: center; gap: 12px; }
         
-        /* 도움말 박스 */
         .help-box { background: rgba(0,122,255,0.08); border: 1px solid var(--blue); border-radius: 15px; padding: 15px; margin-top: 20px; font-size: 13px; color: var(--sub-text); line-height: 1.6; }
         body.dark-mode .help-box { background: rgba(10,132,255,0.15); border-color: #0a84ff; }
         .help-title { font-weight: 800; color: var(--blue); margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 5px; }
@@ -155,7 +154,6 @@
         .rank-row { transition: background 0.2s; cursor: pointer; }
         .rank-row:active { background: var(--body-bg); }
 
-        /* 가져다놔야지만 나오는 작고 깔끔한 판매 존 */
         #sell-zone {
             position: fixed; bottom: -80px; left: 0; width: 100%; height: 50px;
             background: var(--danger); color: white; display: flex; align-items: center; justify-content: center;
@@ -166,7 +164,27 @@
         #sell-zone.active { bottom: 0; pointer-events: auto; }
         #sell-zone.hover { background: #d32f2f; }
 
-        /* 애니메이션 클래스 */
+        /* 오프라인 보상 팝업 스타일 */
+        #offline-popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay); z-index: 4000;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.4s ease;
+        }
+        #offline-popup.show { opacity: 1; }
+        .offline-content {
+            background: var(--card-bg); padding: 35px 25px; border-radius: 35px;
+            text-align: center; width: 85%; max-width: 340px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            transform: translateY(30px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #offline-popup.show .offline-content { transform: translateY(0) scale(1); }
+        .offline-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; color: var(--main-text); }
+        .offline-desc { font-size: 14px; color: var(--sub-text); line-height: 1.5; font-weight: 600; }
+        .offline-gold { font-size: 42px; font-weight: 800; color: var(--gold); margin: 25px 0; text-shadow: 0 4px 15px rgba(255, 171, 0, 0.2); }
+        .offline-btn { background: var(--main-text); color: var(--card-bg); border: none; border-radius: 20px; padding: 18px 0; width: 100%; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: 0.2s; }
+        .offline-btn:active { transform: scale(0.96); }
+
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-6px) rotate(5deg); } }
@@ -206,6 +224,15 @@
     <div id="loading-screen" style="display: none;">
         <div style="font-size: 40px; margin-bottom: 20px;" class="anim-spin">🔄</div>
         <div style="font-weight: bold;">주방을 불러오는 중...</div>
+    </div>
+
+    <div id="offline-popup">
+        <div class="offline-content">
+            <div class="offline-title">환영합니다! 👨‍🍳</div>
+            <div class="offline-desc">셰프님이 자리를 비운 <b id="offline-time-val" style="color:var(--main-text);">0시간</b> 동안<br>주방에서 요리를 판매했어요!</div>
+            <div class="offline-gold">+$ <span id="offline-gold-val">0</span></div>
+            <button class="offline-btn" onclick="closeOfflinePopup()">수령하기</button>
+        </div>
     </div>
 
     <div id="toast">알림</div>
@@ -322,8 +349,16 @@
         };
 
         let dbSaveTimer;
-        // 판매존 반응 임계값 (화면 끝에서 완전 가까운 60px)
         const SELL_THRESHOLD = 60; 
+
+        // 숫자를 K, M, B, T 단위로 변환해주는 함수
+        window.formatCompactNumber = (num) => {
+            if (num < 10000) return Math.floor(num).toLocaleString();
+            if (num < 1000000) return (num / 1000).toFixed(2).replace('.0', '') + 'K';
+            if (num < 1000000000) return (num / 1000000).toFixed(2).replace('.0', '') + 'M';
+            if (num < 1000000000000) return (num / 1000000000).toFixed(2).replace('.0', '') + 'B';
+            return (num / 1000000000000).toFixed(2).replace('.0', '') + 'T';
+        };
 
         function formatPrice(num) {
             if(num === 0) return "무료";
@@ -428,23 +463,21 @@
             sellZone.classList.remove('active');
             sellZone.classList.remove('hover');
 
-            // 화면 완전 맨 아래에 놓았을 때 판매
             if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
                 const lv = game.slots[originIdx];
                 if(lv === 1) {
                     showToast("밀(Lv.1)은 판매할 수 없습니다!");
                     gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
                 } else {
-                    // 수정한 부분: 전체 GPS가 아닌 해당 요리 하나의 GPS만 계산
                     let itemGps = Math.pow(2, lv) - 1;
                     let sellAmount = itemGps * 2;
                     
-                    if(confirm(`이 요리를 판매하고 $${sellAmount.toLocaleString()}을(를) 획득하시겠습니까?`)) {
+                    if(confirm(`이 요리를 판매하고 $${formatCompactNumber(sellAmount)}을(를) 획득하시겠습니까?`)) {
                         document.querySelectorAll('.slot')[originIdx].innerHTML = '';
                         game.slots[originIdx] = null;
                         game.gold += sellAmount;
                         game.score += sellAmount;
-                        showToast(`판매 완료! $${sellAmount.toLocaleString()} 획득! 💰`);
+                        showToast(`판매 완료! $${formatCompactNumber(sellAmount)} 획득! 💰`);
                     } else {
                         gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
                     }
@@ -455,7 +488,6 @@
                 return;
             }
 
-            // 일반 병합 및 이동 로직
             dragTarget.style.visibility = 'hidden';
             const dropElem = document.elementFromPoint(e.clientX, e.clientY);
             dragTarget.style.visibility = 'visible';
@@ -523,7 +555,7 @@
                         <div class="${iconAnim}">${icon}</div>
                     </div>
                     <h3 style="margin:0 0 5px; font-size:20px; font-weight:800;">${nickname}</h3>
-                    <div style="color:var(--gold); font-weight:800; margin-bottom: 25px; font-size: 15px;">🏆 ${score.toLocaleString()}</div>
+                    <div style="color:var(--gold); font-weight:800; margin-bottom: 25px; font-size: 15px;">🏆 ${formatCompactNumber(score)}</div>
                     
                     <div class="stats-box" style="text-align:left;">
                         <div style="font-weight: 800; color: var(--main-text); margin-bottom: 10px; font-size: 14px;">📊 플레이 통계</div>
@@ -599,7 +631,7 @@
                                         </div>
                                         <b style="font-size:15px;">${data.nickname}</b>
                                     </div>
-                                    <div style="font-weight:800; color:var(--gold);">🏆 ${(data.score||0).toLocaleString()}</div>
+                                    <div style="font-weight:800; color:var(--gold);">🏆 ${formatCompactNumber(data.score||0)}</div>
                                  </div>`;
                         rank++;
                     });
@@ -723,17 +755,25 @@
             setTimeout(() => { t.style.top = '-100px'; }, 3000);
         }
 
+        // 오프라인 팝업 닫기 함수
+        window.closeOfflinePopup = () => {
+            const popup = document.getElementById('offline-popup');
+            popup.classList.remove('show');
+            setTimeout(() => { popup.style.display = 'none'; }, 400);
+        };
+
         function gameLoop() {
             let income = 0;
             game.slots.forEach(lv => { if(lv) income += Math.pow(2, lv) - 1; });
             game.gold += income; game.score += income; game.playTime += 1; 
             
-            document.getElementById('gold-val').innerText = Math.floor(game.gold).toLocaleString();
-            document.getElementById('gps-val').innerText = Math.floor(income).toLocaleString();
+            // K, M, B 단위 적용
+            document.getElementById('gold-val').innerText = formatCompactNumber(game.gold);
+            document.getElementById('gps-val').innerText = formatCompactNumber(income);
             
             if(auth.currentUser) {
                 document.getElementById('sb-nickname').innerText = game.customNickname || auth.currentUser.displayName || "셰프";
-                document.getElementById('sb-score').innerText = `🏆 ${Math.floor(game.score).toLocaleString()}`;
+                document.getElementById('sb-score').innerText = `🏆 ${formatCompactNumber(game.score)}`;
             }
             setTimeout(gameLoop, 1000);
         }
@@ -772,11 +812,24 @@
                         let currentGps = 0;
                         game.slots.forEach(lv => { if(lv) currentGps += Math.pow(2, lv) - 1; });
                         
-                        // 오프라인 수익 1/8 감소 적용
                         let offlineGold = Math.floor((offlineSecs * currentGps) / 8); 
                         if (offlineGold > 0) {
                             game.gold += offlineGold; game.score += offlineGold; game.offlineEarnings += offlineGold;
-                            setTimeout(() => { showToast(`오프라인 수익: $${offlineGold.toLocaleString()} 획득! 👨‍🍳`); }, 1500);
+                            
+                            // 오프라인 팝업 로직
+                            let h = Math.floor(offlineSecs / 3600);
+                            let m = Math.floor((offlineSecs % 3600) / 60);
+                            let timeStr = h > 0 ? `${h}시간 ${m}분` : `${m}분`;
+                            
+                            setTimeout(() => { 
+                                document.getElementById('offline-time-val').innerText = timeStr;
+                                document.getElementById('offline-gold-val').innerText = formatCompactNumber(offlineGold);
+                                const popup = document.getElementById('offline-popup');
+                                popup.style.display = 'flex';
+                                void popup.offsetWidth; // reflow
+                                popup.classList.add('show');
+                                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                            }, 1000); // 로딩 끝난 직후 등장
                         }
                     }
                 }
@@ -800,7 +853,7 @@
                 loadGameFromDB(user);
                 
                 if(dbSaveTimer) clearInterval(dbSaveTimer);
-                dbSaveTimer = setInterval(saveGameToDB, 10000); // 10초마다 자동 저장
+                dbSaveTimer = setInterval(saveGameToDB, 10000);
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('login-screen').style.opacity = '1';
