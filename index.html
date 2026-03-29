@@ -345,7 +345,6 @@
 
         window.spawnItem = function() {
             const emptyIdx = game.slots.findIndex(s => s === null);
-            // 가득참 안내문 간결하게 수정
             if(emptyIdx === -1) { showToast("빈 슬롯이 없습니다!"); return; }
             game.spawnCount++;
             
@@ -394,8 +393,6 @@
             startX = e.clientX; startY = e.clientY;
             dragTarget.style.zIndex = 1000;
             
-            // 여기서 판매존 액티브 클래스를 추가하지 않음 (들기만 했을 때 안 보이게)
-            
             document.addEventListener('pointermove', handlePointerMove);
             document.addEventListener('pointerup', handlePointerUp);
             document.addEventListener('pointercancel', handlePointerUp);
@@ -408,11 +405,8 @@
             
             const sellZone = document.getElementById('sell-zone');
             
-            // 화면 하단 120px 이내로 끌고 내려왔을 때만 판매 UI가 나타남
             if(e.clientY > window.innerHeight - 120) {
                 sellZone.classList.add('active');
-                
-                // 판매 확정 영역 (60px 이내)에 닿으면 배경색만 변경
                 if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
                     sellZone.classList.add('hover');
                 } else {
@@ -434,16 +428,16 @@
             sellZone.classList.remove('active');
             sellZone.classList.remove('hover');
 
-            // 화면 완전 맨 아래에 놓았을 때 판매 (SELL_THRESHOLD = 60px)
+            // 화면 완전 맨 아래에 놓았을 때 판매
             if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
                 const lv = game.slots[originIdx];
                 if(lv === 1) {
                     showToast("밀(Lv.1)은 판매할 수 없습니다!");
                     gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
                 } else {
-                    let currentGps = 0;
-                    game.slots.forEach(l => { if(l) currentGps += Math.pow(2, l) - 1; });
-                    let sellAmount = currentGps * 2;
+                    // 수정한 부분: 전체 GPS가 아닌 해당 요리 하나의 GPS만 계산
+                    let itemGps = Math.pow(2, lv) - 1;
+                    let sellAmount = itemGps * 2;
                     
                     if(confirm(`이 요리를 판매하고 $${sellAmount.toLocaleString()}을(를) 획득하시겠습니까?`)) {
                         document.querySelectorAll('.slot')[originIdx].innerHTML = '';
