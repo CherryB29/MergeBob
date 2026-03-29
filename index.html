@@ -96,10 +96,16 @@
         #sidebar {
             position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
             background: var(--card-bg); z-index: 1050; transition: 0.4s cubic-bezier(0.15, 0, 0.15, 1);
-            box-shadow: 10px 0 30px rgba(0,0,0,0.05); padding: 80px 20px 30px; display: flex; flex-direction: column;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.05); padding: 50px 20px 30px; display: flex; flex-direction: column;
         }
         #sidebar.open { left: 0; }
         
+        /* 프로필 영역 추가 */
+        #sidebar-profile { text-align: center; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+        .avatar-circle { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: background 0.3s; }
+        #sb-nickname { font-weight: 800; font-size: 18px; margin-bottom: 5px; }
+        #sb-score { font-size: 13px; font-weight: 700; color: var(--gold); }
+
         .nav-item {
             padding: 18px 10px; font-size: 16px; font-weight: 600; color: var(--main-text);
             border-bottom: 1px solid var(--line); cursor: pointer; display: flex; align-items: center; gap: 12px;
@@ -120,10 +126,16 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0 25px; margin-bottom: 10px; }
         #modal-title { flex: 1; text-align: center; margin-left: 35px; font-size: 20px; font-weight: 800; }
         .scroll-area { overflow-y: auto; flex-grow: 1; padding: 0 30px 40px 30px; color: var(--main-text); }
-        .rank-row { display: flex; justify-content: space-between; align-items: center; padding: 18px 15px; border-bottom: 1px solid var(--line); }
-        .rank-number { font-weight: 700; width: 35px; font-size: 16px; color: var(--sub-text); }
         
-        /* 🚨 로그인 및 로딩 화면 스타일 추가 */
+        .rank-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid var(--line); }
+        .rank-number { font-weight: 800; width: 30px; font-size: 16px; color: var(--sub-text); text-align: center; }
+        
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--body-bg); padding: 12px 18px; border-radius: 20px; margin-bottom: 10px; transition: 0.2s; }
+        .shop-btn { padding: 10px 18px; border-radius: 16px; font-size: 14px; font-weight: 700; width: auto; box-shadow: none; }
+        .btn-buy { background: var(--gold); color: white; }
+        .btn-equip { background: var(--blue); color: white; }
+        .btn-equipped { background: var(--sub-text); color: white; cursor: default; }
+
         #login-screen, #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--body-bg); z-index: 3000; display: flex; flex-direction: column;
@@ -174,17 +186,27 @@
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
     
     <div id="sidebar">
-        <div class="nav-item" id="logout-btn">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            <span id="login-text">로그아웃</span>
+        <div id="sidebar-profile">
+            <div id="sb-avatar" class="avatar-circle">👨‍🍳</div>
+            <div id="sb-nickname">로딩 중...</div>
+            <div id="sb-score">🏆 0</div>
+        </div>
+        
+        <div class="nav-item" onclick="openModal('shop'); toggleSidebar();">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            상점 & 프로필
         </div>
         <div class="nav-item" onclick="openModal('rank'); toggleSidebar();">
             <svg class="icon" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
-            글로벌 랭킹
+            미슐랭 랭킹
         </div>
         <div class="nav-item" onclick="openModal('settings'); toggleSidebar();">
             <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             설정
+        </div>
+        <div class="nav-item" id="logout-btn" style="margin-top: auto;">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            로그아웃
         </div>
     </div>
 
@@ -214,7 +236,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-        // 🚨 익명 로그인(signInAnonymously) 제거
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -237,8 +258,29 @@
             "🍕", "🍗", "🍖", "🥩", "🍲", "🦞", "🍱", "🍮", "🍩", "🍰", "🎂"
         ];
         
+        // 🛒 상점 아이템 데이터
+        const SHOP_ICONS = [
+            { icon: "👨‍🍳", price: 0, name: "초보 셰프" },
+            { icon: "👩‍🍳", price: 5000, name: "베이커리 파티시에" },
+            { icon: "🐱", price: 20000, name: "고양이 요리사" },
+            { icon: "🤖", price: 100000, name: "자동화 로봇" },
+            { icon: "👑", price: 500000, name: "전설의 미슐랭" }
+        ];
+
+        const SHOP_COLORS = [
+            { id: "color_default", color: "#f5f5f7", price: 0, name: "클린 화이트" },
+            { id: "color_pink", color: "#ffebee", price: 10000, name: "스트로베리 핑크" },
+            { id: "color_blue", color: "#e3f2fd", price: 10000, name: "오션 블루" },
+            { id: "color_gold", color: "#fff8c4", price: 50000, name: "프리미엄 골드" },
+            { id: "color_dark", color: "#2c2c2e", price: 50000, name: "시크 블랙" }
+        ];
+        
+        // 🚨 game 객체 확장 (score, 프로필 추가)
         let game = {
-            gold: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: false, lastSaveTime: Date.now()
+            gold: 0, score: 0, 
+            slots: Array(16).fill(null), maxLv: 1, darkMode: false, lastSaveTime: Date.now(),
+            profileIcon: "👨‍🍳", profileColor: "#f5f5f7",
+            ownedIcons: ["👨‍🍳"], ownedColors: ["color_default"]
         };
 
         let dbSaveTimer;
@@ -359,32 +401,94 @@
             ov.style.display = isOpen ? 'block' : 'none';
         };
 
+        // 🚨 모달 로직 (상점 추가, 랭킹 업데이트)
         window.openModal = async (type) => {
             const body = document.getElementById('modal-body');
             const title = document.getElementById('modal-title');
             body.innerHTML = '';
 
-            if(type === 'rank') {
+            if(type === 'shop') {
+                title.innerText = '상점 & 프로필 🛒';
+                
+                let html = `<div style="margin-bottom:25px;">
+                    <h3 style="margin-bottom:10px; font-size:16px; color:var(--sub-text);">아이콘 장착</h3>`;
+                
+                SHOP_ICONS.forEach(item => {
+                    const isOwned = game.ownedIcons.includes(item.icon);
+                    const isEquipped = game.profileIcon === item.icon;
+                    let btnHtml = isEquipped 
+                        ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
+                        : isOwned 
+                            ? `<button class="shop-btn btn-equip" onclick="equipItem('icon', '${item.icon}')">장착</button>`
+                            : `<button class="shop-btn btn-buy" onclick="buyItem('icon', '${item.icon}', ${item.price})">$${item.price.toLocaleString()}</button>`;
+                            
+                    html += `
+                        <div class="shop-item">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <span style="font-size:26px;">${item.icon}</span> <b style="font-size:15px;">${item.name}</b>
+                            </div>
+                            ${btnHtml}
+                        </div>`;
+                });
+
+                html += `</div><div>
+                    <h3 style="margin-bottom:10px; font-size:16px; color:var(--sub-text);">배경색 장착</h3>`;
+                
+                SHOP_COLORS.forEach(item => {
+                    const isOwned = game.ownedColors.includes(item.id);
+                    const isEquipped = game.profileColor === item.color;
+                    let btnHtml = isEquipped 
+                        ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
+                        : isOwned 
+                            ? `<button class="shop-btn btn-equip" onclick="equipItem('color', '${item.color}')">장착</button>`
+                            : `<button class="shop-btn btn-buy" onclick="buyItem('color', '${item.id}', ${item.price}, '${item.color}')">$${item.price.toLocaleString()}</button>`;
+                            
+                    html += `
+                        <div class="shop-item">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:26px; height:26px; border-radius:50%; background:${item.color}; border:1px solid rgba(0,0,0,0.1);"></div> 
+                                <b style="font-size:15px;">${item.name}</b>
+                            </div>
+                            ${btnHtml}
+                        </div>`;
+                });
+                html += `</div>`;
+                body.innerHTML = html;
+            } 
+            else if(type === 'rank') {
                 title.innerText = '미슐랭 랭킹 🏆';
                 body.innerHTML = '<div style="text-align:center; padding:30px;">데이터를 불러오는 중...</div>';
                 try {
-                    const q = query(collection(db, "users"), orderBy("totalGold", "desc"), limit(10));
+                    // 이제 totalGold가 아닌 score(누적점수) 기준으로 랭킹 조회
+                    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(10));
                     const snap = await getDocs(q);
                     let html = "", rank = 1;
                     snap.forEach(d => {
                         const data = d.data();
                         let rankIcon = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+                        let pIcon = data.profileIcon || "👨‍🍳";
+                        let pColor = data.profileColor || "#f5f5f7";
+                        let dScore = data.score || data.totalGold || 0; // 하위호환
+                        
                         html += `<div class="rank-row">
-                                    <div><span class="rank-number">${rankIcon}</span> <b>${data.nickname}</b></div>
-                                    <div style="font-weight:700; color:var(--gold);">$${(data.totalGold||0).toLocaleString()}</div>
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <span class="rank-number">${rankIcon}</span>
+                                        <div style="width:40px; height:40px; border-radius:50%; background:${pColor}; display:flex; align-items:center; justify-content:center; font-size:22px; border:1px solid rgba(0,0,0,0.05);">
+                                            ${pIcon}
+                                        </div>
+                                        <b style="font-size:15px;">${data.nickname}</b>
+                                    </div>
+                                    <div style="font-weight:800; color:var(--gold); font-size:15px;">🏆 ${(dScore).toLocaleString()}</div>
                                  </div>`;
                         rank++;
                     });
                     body.innerHTML = html || "<div style='text-align:center; padding:20px;'>아직 랭킹 데이터가 없습니다.</div>";
                 } catch(e) {
-                    body.innerHTML = "<div style='text-align:center; padding:20px; color:var(--danger);'>랭킹을 불러오는데 실패했습니다.</div>";
+                    console.error(e);
+                    body.innerHTML = "<div style='text-align:center; padding:20px; color:var(--danger);'>랭킹을 불러오는데 실패했습니다. (첫 실행 시 DB 인덱스 생성 대기가 필요할 수 있습니다.)</div>";
                 }
-            } else if(type === 'settings') {
+            } 
+            else if(type === 'settings') {
                 title.innerText = '설정 ⚙️';
                 body.innerHTML = `
                     <div class="setting-row">
@@ -398,6 +502,33 @@
             setTimeout(() => { document.getElementById('main-modal').style.transform = 'translateY(0)'; }, 10);
         };
 
+        // 🚨 상점 구매 및 장착 로직
+        window.buyItem = (type, itemId, price, colorCode = null) => {
+            if(game.gold < price) { showToast("골드가 부족합니다! 💸"); return; }
+            
+            game.gold -= price;
+            if(type === 'icon') {
+                game.ownedIcons.push(itemId);
+                game.profileIcon = itemId; // 자동 장착
+                showToast("새로운 아이콘을 획득했습니다! 🎉");
+            } else if (type === 'color') {
+                game.ownedColors.push(itemId);
+                game.profileColor = colorCode; // 자동 장착
+                showToast("새로운 배경색을 획득했습니다! 🎨");
+            }
+            saveGameToDB();
+            openModal('shop'); // UI 리렌더링
+        };
+
+        window.equipItem = (type, val) => {
+            if(type === 'icon') game.profileIcon = val;
+            else if(type === 'color') game.profileColor = val;
+            
+            showToast("프로필이 변경되었습니다!");
+            saveGameToDB();
+            openModal('shop');
+        };
+
         window.closeModal = () => {
             document.getElementById('main-modal').style.transform = 'translateY(100%)';
             setTimeout(() => { document.getElementById('modal-overlay').style.display = 'none'; }, 400);
@@ -406,6 +537,7 @@
         window.toggleDarkMode = () => {
             game.darkMode = !game.darkMode;
             document.body.classList.toggle('dark-mode');
+            saveGameToDB();
         };
 
         function setupBottomSheet() {
@@ -423,14 +555,25 @@
             setTimeout(() => { t.style.top = '-100px'; }, 3000);
         }
 
+        // 🚨 게임 루프 - Score 로직 및 사이드바 프로필 업데이트 추가
         function gameLoop() {
             let income = 0;
             game.slots.forEach(lv => { if(lv) income += Math.floor(Math.pow(1.5, lv - 1)) || 1; });
+            
             game.gold += income;
+            game.score += income; // 랭킹용 누적 점수
             
             document.getElementById('gold-val').innerText = Math.floor(game.gold).toLocaleString();
             document.getElementById('gps-val').innerText = Math.floor(income).toLocaleString();
             
+            // 사이드바 실시간 렌더링
+            if(auth.currentUser) {
+                document.getElementById('sb-avatar').innerText = game.profileIcon;
+                document.getElementById('sb-avatar').style.background = game.profileColor;
+                document.getElementById('sb-nickname').innerText = auth.currentUser.displayName || "셰프";
+                document.getElementById('sb-score').innerText = `🏆 ${Math.floor(game.score).toLocaleString()}`;
+            }
+
             setTimeout(gameLoop, 1000);
         }
 
@@ -442,11 +585,16 @@
             
             setDoc(userRef, { 
                 nickname: auth.currentUser.displayName,
-                totalGold: Math.floor(game.gold), 
+                totalGold: Math.floor(game.gold), // 보유 잔액
+                score: Math.floor(game.score),    // 누적 랭킹 점수
                 maxLv: game.maxLv,
                 slots: game.slots,
                 lastSaveTime: game.lastSaveTime,
-                darkMode: game.darkMode
+                darkMode: game.darkMode,
+                profileIcon: game.profileIcon,
+                profileColor: game.profileColor,
+                ownedIcons: game.ownedIcons,
+                ownedColors: game.ownedColors
             }, { merge: true }).catch(e => console.log("DB 저장 에러:", e));
         }
 
@@ -457,10 +605,17 @@
             if(snap.exists()) {
                 const data = snap.data();
                 game.gold = data.totalGold || 0;
+                game.score = data.score || data.totalGold || 0; // 구버전 유저 하위호환
                 game.maxLv = data.maxLv || 1;
                 game.slots = data.slots || Array(16).fill(null);
                 game.lastSaveTime = data.lastSaveTime || Date.now();
                 game.darkMode = data.darkMode || false;
+                
+                // 프로필/인벤토리 로드
+                game.profileIcon = data.profileIcon || "👨‍🍳";
+                game.profileColor = data.profileColor || "#f5f5f7";
+                game.ownedIcons = data.ownedIcons || ["👨‍🍳"];
+                game.ownedColors = data.ownedColors || ["color_default"];
 
                 document.querySelectorAll('.slot').forEach(s => s.innerHTML = '');
                 game.slots.forEach((lv, i) => { if(lv) addItem(lv, i, false); });
@@ -476,6 +631,7 @@
                         let offlineGold = offlineSeconds * currentGps;
                         if (offlineGold > 0) {
                             game.gold += offlineGold;
+                            game.score += offlineGold; // 오프라인 수익도 스코어에 추가
                             setTimeout(() => { showToast(`오프라인 수익: $${offlineGold.toLocaleString()} 획득! 👨‍🍳`); }, 1500);
                         }
                     }
@@ -493,10 +649,8 @@
             signInWithPopup(auth, provider).catch((error) => { showToast("로그인에 실패했습니다."); });
         };
 
-        // 🚨 오직 구글 로그인 상태만 감지
         onAuthStateChanged(auth, (user) => {
             if(user) {
-                // 로그인 성공 시
                 document.getElementById('login-screen').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-screen').style.display = 'none', 500);
                 document.getElementById('loading-screen').style.display = 'flex';
@@ -512,7 +666,6 @@
                 if(dbSaveTimer) clearInterval(dbSaveTimer);
                 dbSaveTimer = setInterval(saveGameToDB, 10000);
             } else {
-                // 로그아웃 상태면 무조건 로그인 화면 표시
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('login-screen').style.opacity = '1';
                 document.getElementById('loading-screen').style.display = 'none';
