@@ -616,30 +616,42 @@
             sellZone.classList.remove('active');
             sellZone.classList.remove('hover');
 
-            if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
+                        if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
                 const lv = game.slots[originIdx];
-                if(lv === 1) {
-                    showToast("밀(Lv.1)은 판매할 수 없습니다!");
-                    gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
-                } else {
+                
+                // 밀(Lv.1)일 경우 판매 금액을 0으로, 아닐 경우 정상 계산
+                let sellAmount = 0;
+                if (lv > 1) {
                     let itemGps = Math.pow(2, lv) - 1;
-                    let sellAmount = itemGps * 2;
+                    sellAmount = itemGps * 2;
+                }
+                
+                // 확인 창 메시지 분기 처리
+                let confirmMsg = lv === 1 
+                    ? `밀을 버리시겠습니까? (획득 금액: $0)` 
+                    : `이 요리를 판매하고 $${formatCompactNumber(sellAmount)}을(를) 획득하시겠습니까?`;
+
+                if(confirm(confirmMsg)) {
+                    document.querySelectorAll('.slot')[originIdx].innerHTML = '';
+                    game.slots[originIdx] = null;
+                    game.gold += sellAmount; // 밀은 0원이므로 수익 없음
+                    game.score += sellAmount;
                     
-                    if(confirm(`이 요리를 판매하고 $${formatCompactNumber(sellAmount)}을(를) 획득하시겠습니까?`)) {
-                        document.querySelectorAll('.slot')[originIdx].innerHTML = '';
-                        game.slots[originIdx] = null;
-                        game.gold += sellAmount;
-                        game.score += sellAmount;
-                        showToast(`판매 완료! $${formatCompactNumber(sellAmount)} 획득! 💰`);
-                    } else {
-                        gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
-                    }
+                    // 완료 메시지 분기 처리
+                    let toastMsg = lv === 1 
+                        ? `밀을 버렸습니다! 🗑️` 
+                        : `판매 완료! $${formatCompactNumber(sellAmount)} 획득! 💰`;
+                        
+                    showToast(toastMsg);
+                } else {
+                    gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
                 }
                 
                 if(dragTarget) dragTarget.style.zIndex = 2;
                 dragTarget = null;
                 return;
             }
+
 
             dragTarget.style.visibility = 'hidden';
             const dropElem = document.elementFromPoint(e.clientX, e.clientY);
