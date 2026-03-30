@@ -295,7 +295,7 @@
         </div>
         <div class="nav-item" onclick="openModal('rank'); toggleSidebar();">
             <svg class="icon" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
-        랭킹
+            미슐랭 랭킹
         </div>
         <div class="nav-item" onclick="openModal('settings'); toggleSidebar();">
             <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -466,8 +466,8 @@
             if(emptyIdx === -1) { showToast("빈 슬롯이 없습니다!"); return; }
             game.spawnCount++;
             
-            // 1% 확률 럭키 아이템 생성
-            if (Math.random() < 0.01) {
+            // 0.7% 확률 럭키 아이템 생성
+            if (Math.random() < 0.007) {
                 addItem('LUCKY', emptyIdx, true);
                 return;
             }
@@ -785,7 +785,7 @@
                 body.innerHTML = html;
             } 
             else if(type === 'rank') {
-                title.innerText = '랭킹 🏆';
+                title.innerText = '미슐랭 랭킹 🏆';
                 body.innerHTML = '<div style="text-align:center; padding:30px;">불러오는 중...</div>';
                 try {
                     const q = query(collection(db, "users"), orderBy("score", "desc"), limit(10));
@@ -855,13 +855,13 @@
                 let html = `<div style="padding: 15px; font-size: 15px; color: var(--main-text); line-height: 1.8;">`;
                 html += `<div style="text-align: center; margin-bottom: 15px; color: var(--sub-text); font-size: 13px; font-weight: 600;">현재 최고 레벨(Lv.${game.maxLv}) 기준 등장 확률입니다.</div>`;
                 html += `<div class="stats-box">`;
-                html += `<div class="stats-row"><span>🛎️ 럭키(황금 뚜껑)</span><span class="stats-val" style="color:var(--gold);">1.0%</span></div>`;
-                if(game.unlockedBaseLv >= 6) html += `<div class="stats-row"><span>${ITEM_DATA[5]} (Lv.6)</span><span class="stats-val">${(probs.p6 * 99.0).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 5) html += `<div class="stats-row"><span>${ITEM_DATA[4]} (Lv.5)</span><span class="stats-val">${(probs.p5 * 99.0).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 4) html += `<div class="stats-row"><span>${ITEM_DATA[3]} (Lv.4)</span><span class="stats-val">${(probs.p4 * 99.0).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 3) html += `<div class="stats-row"><span>${ITEM_DATA[2]} (Lv.3)</span><span class="stats-val">${(probs.p3 * 99.0).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 2) html += `<div class="stats-row"><span>${ITEM_DATA[1]} (Lv.2)</span><span class="stats-val">${(probs.p2 * 99.0).toFixed(1)}%</span></div>`;
-                html += `<div class="stats-row"><span>${ITEM_DATA[0]} (Lv.1)</span><span class="stats-val">${(probs.p1 * 99.0).toFixed(1)}%</span></div>`;
+                html += `<div class="stats-row"><span>🛎️ 럭키(황금 뚜껑)</span><span class="stats-val" style="color:var(--gold);">0.7%</span></div>`;
+                if(game.unlockedBaseLv >= 6) html += `<div class="stats-row"><span>${ITEM_DATA[5]} (Lv.6)</span><span class="stats-val">${(probs.p6 * 99.3).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 5) html += `<div class="stats-row"><span>${ITEM_DATA[4]} (Lv.5)</span><span class="stats-val">${(probs.p5 * 99.3).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 4) html += `<div class="stats-row"><span>${ITEM_DATA[3]} (Lv.4)</span><span class="stats-val">${(probs.p4 * 99.3).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 3) html += `<div class="stats-row"><span>${ITEM_DATA[2]} (Lv.3)</span><span class="stats-val">${(probs.p3 * 99.3).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 2) html += `<div class="stats-row"><span>${ITEM_DATA[1]} (Lv.2)</span><span class="stats-val">${(probs.p2 * 99.3).toFixed(1)}%</span></div>`;
+                html += `<div class="stats-row"><span>${ITEM_DATA[0]} (Lv.1)</span><span class="stats-val">${(probs.p1 * 99.3).toFixed(1)}%</span></div>`;
                 html += `</div></div>`;
                 body.innerHTML = html;
             }
