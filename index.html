@@ -333,13 +333,22 @@
         ];
 
         const SHOP_COLORS = [
-            { id: "c_def", color: "#f5f5f7", price: 0, anim: "" }, { id: "c_pink", color: "#ffebee", price: 100000, anim: "" },
-            { id: "c_mint", color: "#e0f2f1", price: 100000, anim: "" }, { id: "c_purple", color: "#f3e5f5", price: 500000, anim: "" },
-            { id: "c_neon", color: "#39ff14", price: 2000000, anim: "anim-pulse" }, { id: "g_sun", color: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", price: 10000000, anim: "" },
-            { id: "g_ocean", color: "linear-gradient(120deg, #8ec5fc 0%, #e0c3fc 100%)", price: 50000000, anim: "" }, { id: "g_fire", color: "linear-gradient(to right, #f12711, #f5af19)", price: 200000000, anim: "anim-bg-move" },
-            { id: "g_cyber", color: "linear-gradient(to right, #ff0099, #493240)", price: 500000000, anim: "anim-bg-move" }, { id: "g_gold", color: "linear-gradient(120deg, #f6d365 0%, #fda085 100%)", price: 200000000, anim: "anim-pulse" },
-            { id: "g_rain", color: "linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb)", price: 500000000, anim: "anim-bg-move" }, { id: "g_blackhole", color: "radial-gradient(circle, #000000, #434343)", price: 1000000000, anim: "anim-spin" },
-            { id: "g_flash", color: "radial-gradient(circle, #fff, #ff00ff)", price: 2000000000, anim: "anim-flash" }, { id: "g_rainbow", color: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", price: 10000000000, anim: "anim-rainbow" } 
+            { id: "c_def", color: "#f5f5f7", price: 0, anim: "" }, 
+            { id: "c_pink", color: "#ffebee", price: 100000, anim: "" },
+            { id: "c_mint", color: "#e0f2f1", price: 100000, anim: "" }, 
+            { id: "c_green", color: "#c8e6c9", price: 100000, anim: "" },
+            { id: "c_purple", color: "#f3e5f5", price: 500000, anim: "" },
+            { id: "c_neon", color: "#39ff14", price: 2000000, anim: "anim-pulse" }, 
+            { id: "g_sun", color: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", price: 10000000, anim: "" },
+            { id: "g_nature", color: "linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)", price: 50000000, anim: "" },
+            { id: "g_ocean", color: "linear-gradient(120deg, #8ec5fc 0%, #e0c3fc 100%)", price: 50000000, anim: "" }, 
+            { id: "g_fire", color: "linear-gradient(to right, #f12711, #f5af19)", price: 200000000, anim: "anim-bg-move" },
+            { id: "g_cyber", color: "linear-gradient(to right, #ff0099, #493240)", price: 500000000, anim: "anim-bg-move" }, 
+            { id: "g_gold", color: "linear-gradient(120deg, #f6d365 0%, #fda085 100%)", price: 200000000, anim: "anim-pulse" },
+            { id: "g_rain", color: "linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb)", price: 500000000, anim: "anim-bg-move" }, 
+            { id: "g_blackhole", color: "radial-gradient(circle, #000000, #434343)", price: 1000000000, anim: "anim-spin" },
+            { id: "g_flash", color: "radial-gradient(circle, #fff, #ff00ff)", price: 2000000000, anim: "anim-flash" }, 
+            { id: "g_rainbow", color: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", price: 10000000000, anim: "anim-rainbow" } 
         ];
         
         let game = {
@@ -351,24 +360,18 @@
         let dbSaveTimer;
         const SELL_THRESHOLD = 60; 
 
-        // 숫자를 K, M, B, T 단위로 변환해주는 함수
-        // 수정 전: (num / ...).toFixed(2).replace('.0', '')
-// 수정 후: parseFloat((num / ...).toFixed(2))
-
-window.formatCompactNumber = (num) => {
-    if (num < 10000) return Math.floor(num).toLocaleString();
-    if (num < 1000000) return parseFloat((num / 1000).toFixed(2)) + 'K';
-    if (num < 1000000000) return parseFloat((num / 1000000).toFixed(2)) + 'M';
-    if (num < 1000000000000) return parseFloat((num / 1000000000).toFixed(2)) + 'B';
-    return parseFloat((num / 1000000000000).toFixed(2)) + 'T';
-};
-
+        window.formatCompactNumber = (num) => {
+            if (num < 10000) return Math.floor(num).toLocaleString();
+            if (num < 1000000) return parseFloat((num / 1000).toFixed(2)) + 'K';
+            if (num < 1000000000) return parseFloat((num / 1000000).toFixed(2)) + 'M';
+            if (num < 1000000000000) return parseFloat((num / 1000000000).toFixed(2)) + 'B';
+            return parseFloat((num / 1000000000000).toFixed(2)) + 'T';
+        };
 
         function formatPrice(num) {
-    if(num === 0) return "무료";
-    return window.formatCompactNumber(num);
-}
-
+            if(num === 0) return "무료";
+            return window.formatCompactNumber(num);
+        }
 
         function initGrid() {
             const grid = document.getElementById('grid');
@@ -758,7 +761,6 @@ window.formatCompactNumber = (num) => {
             setTimeout(() => { t.style.top = '-100px'; }, 3000);
         }
 
-        // 오프라인 팝업 닫기 함수
         window.closeOfflinePopup = () => {
             const popup = document.getElementById('offline-popup');
             popup.classList.remove('show');
@@ -770,7 +772,6 @@ window.formatCompactNumber = (num) => {
             game.slots.forEach(lv => { if(lv) income += Math.pow(2, lv) - 1; });
             game.gold += income; game.score += income; game.playTime += 1; 
             
-            // K, M, B 단위 적용
             document.getElementById('gold-val').innerText = formatCompactNumber(game.gold);
             document.getElementById('gps-val').innerText = formatCompactNumber(income);
             
@@ -819,7 +820,6 @@ window.formatCompactNumber = (num) => {
                         if (offlineGold > 0) {
                             game.gold += offlineGold; game.score += offlineGold; game.offlineEarnings += offlineGold;
                             
-                            // 오프라인 팝업 로직
                             let h = Math.floor(offlineSecs / 3600);
                             let m = Math.floor((offlineSecs % 3600) / 60);
                             let timeStr = h > 0 ? `${h}시간 ${m}분` : `${m}분`;
@@ -829,10 +829,10 @@ window.formatCompactNumber = (num) => {
                                 document.getElementById('offline-gold-val').innerText = formatCompactNumber(offlineGold);
                                 const popup = document.getElementById('offline-popup');
                                 popup.style.display = 'flex';
-                                void popup.offsetWidth; // reflow
+                                void popup.offsetWidth; 
                                 popup.classList.add('show');
                                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                            }, 1000); // 로딩 끝난 직후 등장
+                            }, 1000); 
                         }
                     }
                 }
