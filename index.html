@@ -12,7 +12,7 @@
             --accent: #1d1d1f; --main-text: #1d1d1f; --sub-text: #86868b;
             --card-bg: #ffffff; --body-bg: #f5f5f7; --modal-overlay: rgba(0, 0, 0, 0.4); --blue: #007aff;
             --danger: #ff3b30; --line: rgba(0,0,0,0.08); --gold: #ffab00; --shop-card: #ffffff;
-            --online: #34c759;
+            --online: #34c759; --robot: #af52de;
         }
         body.dark-mode {
             --main-text: #f5f5f7; --sub-text: #a1a1a6;
@@ -48,8 +48,12 @@
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
             background: var(--body-bg); padding: 15px; border-radius: 30px;
             box-shadow: inset 0 4px 10px rgba(0,0,0,0.05); width: 100%; touch-action: none;
+            transition: all 0.3s ease;
         }
         body.dark-mode #grid { box-shadow: inset 0 4px 10px rgba(0,0,0,0.3); }
+
+        #grid.grid-5x5 { grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 10px; }
+        #grid.grid-5x5 .item { font-size: clamp(20px, 5.5vw, 26px); }
 
         .slot {
             width: 100%; aspect-ratio: 1 / 1; background: var(--card-bg);
@@ -62,16 +66,19 @@
             width: 100%; height: 100%; border-radius: 20%; display: flex; align-items: center; justify-content: center;
             font-size: clamp(24px, 7vw, 34px); position: absolute; z-index: 2;
             background: var(--card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.1); user-select: none; pointer-events: none;
-            border: 3px solid transparent; 
+            border: 3px solid transparent; transition: font-size 0.3s;
         }
         
         .item-lucky {
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%) !important;
-            color: white !important;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
-            box-shadow: 0 0 15px rgba(255, 171, 0, 0.5) !important;
-            pointer-events: auto !important; 
-            cursor: pointer !important;
+            color: white !important; text-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+            box-shadow: 0 0 15px rgba(255, 171, 0, 0.5) !important; pointer-events: auto !important; cursor: pointer !important;
+        }
+
+        .robot-fx {
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; z-index: 20; pointer-events: none; text-shadow: 0 0 10px var(--robot);
         }
 
         .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 30px; }
@@ -81,7 +88,6 @@
         #spawn-btn:active { transform: scale(0.96); }
         .btn-danger { background: var(--danger); color: white; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
 
-        /* 확률 버튼 - 작고 단정하게 변경 */
         #prob-btn {
             position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
             width: 18px; height: 18px; border-radius: 50%;
@@ -92,25 +98,17 @@
         }
         #prob-btn:active { transform: translateY(-50%) scale(0.9); background: rgba(255,255,255,0.4); }
         body.dark-mode #prob-btn { background: rgba(0,0,0,0.3); color: white; }
-        body.dark-mode #prob-btn:active { background: rgba(0,0,0,0.5); }
 
         #toast {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.85); color: white; padding: 14px 28px;
             border-radius: 30px; font-size: 14px; font-weight: 600; z-index: 2000;
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); white-space: nowrap;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2); pointer-events: none;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); white-space: nowrap; box-shadow: 0 8px 20px rgba(0,0,0,0.2); pointer-events: none;
         }
         body.dark-mode #toast { background: rgba(255,255,255,0.9); color: black; }
 
-        #menu-trigger {
-            position: absolute; top: 20px; left: 20px; width: 44px; height: 44px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1100;
-        }
-        #sidebar-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--modal-overlay); z-index: 1040; display: none; backdrop-filter: blur(4px);
-        }
+        #menu-trigger { position: absolute; top: 20px; left: 20px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1100; }
+        #sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1040; display: none; backdrop-filter: blur(4px); }
         #sidebar {
             position: fixed; top: 0; left: -300px; width: 300px; height: 100%;
             background: var(--card-bg); z-index: 1050; transition: 0.4s cubic-bezier(0.15, 0, 0.15, 1);
@@ -163,6 +161,7 @@
         .shop-color-preview { width: 45px; height: 45px; border-radius: 50%; margin-bottom: 12px; border: 2px solid var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .shop-btn { padding: 8px 0; border-radius: 12px; font-size: 12px; font-weight: 800; width: 100%; margin-top: auto; }
         .btn-buy { background: var(--gold); color: white; }
+        .btn-buy-special { background: var(--robot); color: white; }
         .btn-equip { background: var(--main-text); color: var(--card-bg); }
         .btn-equipped { background: var(--body-bg); color: var(--sub-text); cursor: default; }
 
@@ -173,43 +172,33 @@
         .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(20px); }
-        
         .name-input { flex: 1; padding: 12px 15px; border-radius: 12px; border: 1px solid var(--line); background: var(--body-bg); color: var(--main-text); font-size: 14px; font-weight: 600; width: 100%; }
-
-        .rank-row { transition: background 0.2s; cursor: pointer; }
-        .rank-row:active { background: var(--body-bg); }
-
-        .online-dot { width: 8px; height: 8px; background: var(--online); border-radius: 50%; display: inline-block; box-shadow: 0 0 6px rgba(52, 199, 89, 0.6); margin-left: 6px; }
 
         #sell-zone {
             position: fixed; bottom: -80px; left: 0; width: 100%; height: 50px;
             background: var(--danger); color: white; display: flex; align-items: center; justify-content: center;
             font-size: 14px; font-weight: 800; z-index: 1500; transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
-            box-shadow: 0 -5px 20px rgba(255, 59, 48, 0.4); border-radius: 20px 20px 0 0;
-            pointer-events: none;
+            box-shadow: 0 -5px 20px rgba(255, 59, 48, 0.4); border-radius: 20px 20px 0 0; pointer-events: none;
         }
         #sell-zone.active { bottom: 0; pointer-events: auto; }
         #sell-zone.hover { background: #d32f2f; }
 
-        #offline-popup, #unlock-popup {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--modal-overlay); z-index: 4000;
-            display: none; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.4s ease;
+        #offline-popup, #unlock-popup, #robot-popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 4000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.4s ease;
         }
-        #offline-popup.show, #unlock-popup.show { opacity: 1; }
+        #offline-popup.show, #unlock-popup.show, #robot-popup.show { opacity: 1; }
         .offline-content {
-            background: var(--card-bg); padding: 35px 25px; border-radius: 35px;
-            text-align: center; width: 85%; max-width: 340px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            transform: translateY(30px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--card-bg); padding: 35px 25px; border-radius: 35px; text-align: center; width: 85%; max-width: 340px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform: translateY(30px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        #offline-popup.show .offline-content, #unlock-popup.show .offline-content { transform: translateY(0) scale(1); }
+        #offline-popup.show .offline-content, #unlock-popup.show .offline-content, #robot-popup.show .offline-content { transform: translateY(0) scale(1); }
         .offline-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; color: var(--main-text); }
         .offline-desc { font-size: 14px; color: var(--sub-text); line-height: 1.5; font-weight: 600; }
         .offline-gold { font-size: 42px; font-weight: 800; color: var(--gold); margin: 25px 0; text-shadow: 0 4px 15px rgba(255, 171, 0, 0.2); }
         .offline-btn { background: var(--main-text); color: var(--card-bg); border: none; border-radius: 20px; padding: 18px 0; width: 100%; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: 0.2s; }
         .offline-btn:active { transform: scale(0.96); }
+        .robot-btn { background: var(--robot); box-shadow: 0 10px 20px rgba(175, 82, 222, 0.2); }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
@@ -228,9 +217,7 @@
         .anim-rainbow { animation: rainbowSpin 3s linear infinite; }
 
         #login-screen, #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--body-bg); z-index: 3000; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: var(--main-text); transition: opacity 0.5s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--body-bg); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--main-text); transition: opacity 0.5s;
         }
         .google-btn { background: white; border: 1px solid #ddd; padding: 15px 30px; border-radius: 30px; font-size: 16px; font-weight: 700; color: #3c4043; display: flex; align-items: center; gap: 12px; cursor: pointer; width: auto; }
     </style>
@@ -257,7 +244,7 @@
             <div class="offline-title">환영합니다! 👨‍🍳</div>
             <div class="offline-desc">셰프님이 자리를 비운 <b id="offline-time-val" style="color:var(--main-text);">0시간</b> 동안<br>주방에서 요리를 판매했어요!</div>
             <div class="offline-gold">+$ <span id="offline-gold-val">0</span></div>
-            <button class="offline-btn" onclick="closeOfflinePopup()">수령하기</button>
+            <button class="offline-btn" onclick="closePopup('offline-popup')">수령하기</button>
         </div>
     </div>
 
@@ -266,7 +253,16 @@
             <div style="font-size: 45px; margin-bottom: 10px;" class="anim-bounce">🎉</div>
             <div class="offline-title">새로운 기본 재료 추가!</div>
             <div class="offline-desc" style="margin-top: 15px;">이제 <b id="unlock-item-icon" style="font-size: 18px;">🥛</b>가 기본 재료에<br>낮은 확률로 등장합니다.</div>
-            <button class="offline-btn" onclick="closeUnlockPopup()" style="margin-top: 25px;">확인</button>
+            <button class="offline-btn" onclick="closePopup('unlock-popup')" style="margin-top: 25px;">확인</button>
+        </div>
+    </div>
+
+    <div id="robot-popup">
+        <div class="offline-content">
+            <div style="font-size: 45px; margin-bottom: 10px;" class="anim-float">🤖</div>
+            <div class="offline-title">자동화 및 확장 해금!</div>
+            <div class="offline-desc" style="margin-top: 15px;">놀라운 점수(20억) 달성 축하합니다!<br>이제 사이드바 메뉴에서<br><b>자동화 로봇 및 주방 확장</b>을 사용할 수 있습니다.</div>
+            <button class="offline-btn robot-btn" onclick="closePopup('robot-popup')" style="margin-top: 25px;">멋지네요!</button>
         </div>
     </div>
 
@@ -289,6 +285,11 @@
             <div id="sb-score">🏆 0</div>
         </div>
         
+        <div class="nav-item" id="nav-upgrade" style="display:none; color: var(--robot);" onclick="openModal('upgrade'); toggleSidebar();">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+            로봇 업그레이드
+        </div>
+
         <div class="nav-item" onclick="openModal('shop'); toggleSidebar();">
             <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
             꾸미기 상점
@@ -307,8 +308,8 @@
             <ul class="help-list">
                 <li>같은 요리를 합쳐 더 높은 레벨로 만드세요.</li>
                 <li>오프라인 상태에서도 초당 수익의 1/8이 모입니다.</li>
-                <li>요리를 화면 <b>완전 최하단으로 드래그</b>하면 현재 초당 수익의 2배로 판매할 수 있습니다!</li>
-                <li>간혹 등장하는 <b>황금 뚜껑(🛎️)</b>을 누르면 깜짝 놀랄 요리가 등장합니다!</li>
+                <li>요리를 화면 <b>최하단으로 드래그</b>해 판매하세요.</li>
+                <li>점수 20억을 넘기면 로봇 기능과 5x5 확장이 해금됩니다!</li>
             </ul>
         </div>
 
@@ -330,7 +331,7 @@
         <div id="grid"></div>
         <div class="btn-group">
             <div class="spawn-wrapper">
-                <button id="spawn-btn" onclick="spawnItem()">⚡ 재료 생성</button>
+                <button id="spawn-btn" onclick="spawnItem(true)">⚡ 재료 생성</button>
                 <div id="prob-btn" onclick="showProbInfo(event)">i</div>
             </div>
         </div>
@@ -349,7 +350,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -372,12 +373,9 @@
         ];
 
         const SHOP_COLORS = [
-            { id: "c_def", color: "#f5f5f7", price: 0, anim: "" }, 
-            { id: "c_pink", color: "#ffebee", price: 100000, anim: "" },
-            { id: "c_mint", color: "#e0f2f1", price: 100000, anim: "" }, 
-            { id: "c_green", color: "#c8e6c9", price: 100000, anim: "" },
-            { id: "c_purple", color: "#f3e5f5", price: 500000, anim: "" },
-            { id: "c_neon", color: "#39ff14", price: 2000000, anim: "anim-pulse" }, 
+            { id: "c_def", color: "#f5f5f7", price: 0, anim: "" }, { id: "c_pink", color: "#ffebee", price: 100000, anim: "" },
+            { id: "c_mint", color: "#e0f2f1", price: 100000, anim: "" }, { id: "c_green", color: "#c8e6c9", price: 100000, anim: "" },
+            { id: "c_purple", color: "#f3e5f5", price: 500000, anim: "" }, { id: "c_neon", color: "#39ff14", price: 2000000, anim: "anim-pulse" }, 
             { id: "g_sun", color: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", price: 10000000, anim: "" },
             { id: "g_nature", color: "linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)", price: 50000000, anim: "" },
             { id: "g_ocean", color: "linear-gradient(120deg, #8ec5fc 0%, #e0c3fc 100%)", price: 50000000, anim: "" }, 
@@ -393,10 +391,16 @@
         let game = {
             gold: 0, score: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: false, lastSaveTime: Date.now(),
             profileIcon: "👨‍🍳", profileColor: "#f5f5f7", ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"],
-            playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: "", unlockedBaseLv: 1
+            playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: "", unlockedBaseLv: 1,
+            is5x5Unlocked: false, upgradesUnlocked: false, autoSpawnLv: 0, autoMergeLv: 0,
+            autoSpawnActive: true, autoMergeActive: true
         };
 
         let dbSaveTimer;
+        let autoSpawnTimer = 0;
+        let autoMergeTimer = 0;
+        let isRobotMerging = false; 
+        let draggingIdx = -1;       
         const SELL_THRESHOLD = 60; 
 
         window.formatCompactNumber = (num) => {
@@ -412,16 +416,6 @@
             return window.formatCompactNumber(num);
         }
 
-        function getRelativeTime(timestamp) {
-            if (!timestamp) return "접속 기록 없음";
-            const diffSec = Math.floor((Date.now() - timestamp) / 1000);
-            
-            if (diffSec < 60) return "방금 전";
-            if (diffSec < 3600) return `${Math.floor(diffSec / 60)}분 전`;
-            if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}시간 전`;
-            return `${Math.floor(diffSec / 86400)}일 전`;
-        }
-
         function getBorderColor(lv) {
             if (lv === 'LUCKY') return '#ffab00'; 
             if (lv <= 10) return 'transparent';
@@ -434,7 +428,12 @@
         function initGrid() {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
-            for(let i=0; i<16; i++) {
+            
+            let totalSlots = game.is5x5Unlocked ? 25 : 16;
+            if (game.is5x5Unlocked) grid.classList.add('grid-5x5');
+            else grid.classList.remove('grid-5x5');
+
+            for(let i=0; i<totalSlots; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'slot'; slot.dataset.idx = i;
                 slot.addEventListener('pointerdown', (e) => handlePointerDown(i, e));
@@ -442,37 +441,45 @@
             }
         }
 
-        // 재료 등장 확률 계산 (매 레벨마다 1~5%씩 부드럽게 상승 및 최대치 상향)
         window.getSpawnProbabilities = function() {
             let p6 = game.unlockedBaseLv >= 6 ? Math.min(0.18, Math.max(0, (game.maxLv - 24) * 0.02)) : 0;
             let p5 = game.unlockedBaseLv >= 5 ? Math.min(0.20, Math.max(0, (game.maxLv - 19) * 0.025)) : 0;
             let p4 = game.unlockedBaseLv >= 4 ? Math.min(0.25, Math.max(0, (game.maxLv - 14) * 0.03)) : 0;
             let p3 = game.unlockedBaseLv >= 3 ? Math.min(0.30, Math.max(0, (game.maxLv - 9) * 0.04)) : 0;
             let p2 = game.unlockedBaseLv >= 2 ? Math.min(0.40, Math.max(0, (game.maxLv - 4) * 0.06)) : 0;
-
             let totalUpper = p6 + p5 + p4 + p3 + p2;
-            // 상위 아이템 등장 최대 상한선을 85%에서 90%로 올려 체감 확률 상승
             if (totalUpper > 0.90) { 
                 let scale = 0.90 / totalUpper;
                 p6 *= scale; p5 *= scale; p4 *= scale; p3 *= scale; p2 *= scale;
             }
             let p1 = 1.0 - (p6 + p5 + p4 + p3 + p2);
-
             return { p1, p2, p3, p4, p5, p6 };
         };
 
-        window.spawnItem = function() {
+        window.spawnItem = function(isManual = false) {
             const emptyIdx = game.slots.findIndex(s => s === null);
-            if(emptyIdx === -1) { showToast("빈 슬롯이 없습니다!"); return; }
-            game.spawnCount++;
+            if(emptyIdx === -1) { 
+                if(isManual) showToast("빈 슬롯이 없습니다!"); 
+                else autoSpawnTimer = 0; 
+                return; 
+            }
+            if(isManual) game.spawnCount++;
             
-            // 0.7% 확률 럭키 아이템 생성
-            if (Math.random() < 0.007) {
+            if(!isManual) {
+                const slotDom = document.querySelectorAll('.slot')[emptyIdx];
+                const fx = document.createElement('div');
+                fx.className = 'robot-fx'; fx.innerText = '✨';
+                fx.style.fontSize = '20px';
+                fx.style.opacity = '0.6';
+                slotDom.appendChild(fx);
+                gsap.to(fx, { y: -15, opacity: 0, duration: 0.5, ease: "power1.out", onComplete: () => fx.remove() });
+            }
+
+            if (Math.random() < 0.005) {
                 addItem('LUCKY', emptyIdx, true);
                 return;
             }
 
-            // 5레벨 간격으로 새로운 기본재료 해금 (25레벨 6단계)
             let newUnlockedLv = 1;
             if (game.maxLv >= 25) newUnlockedLv = 6;
             else if (game.maxLv >= 20) newUnlockedLv = 5;
@@ -503,6 +510,7 @@
 
         function addItem(lv, idx, animate = false) {
             const slot = document.querySelectorAll('.slot')[idx];
+            if(!slot) return;
             const item = document.createElement('div');
             item.className = 'item'; 
             
@@ -534,8 +542,7 @@
         let dragTarget = null, startX, startY, originIdx;
 
         function handlePointerDown(idx, e) {
-            // 개발자 기능 삭제: 빈칸 클릭 시 바로 리턴
-            if(!game.slots[idx]) return;
+            if(!game.slots[idx] || game.slots[idx] === 'LOCK') return;
 
             if(game.slots[idx] === 'LUCKY') {
                 e.preventDefault();
@@ -543,7 +550,10 @@
                 return;
             }
 
-            e.preventDefault(); originIdx = idx;
+            e.preventDefault(); 
+            originIdx = idx;
+            draggingIdx = idx; 
+            
             const slot = document.querySelectorAll('.slot')[idx];
             dragTarget = slot.querySelector('.item');
             if(!dragTarget) return;
@@ -561,10 +571,8 @@
             const item = slot.querySelector('.item');
             
             gsap.to(item, { scale: 1.2, rotation: 15, yoyo: true, repeat: 3, duration: 0.1, onComplete: () => {
-                
-                // 최고 레벨 -4 부터 최고 레벨 -2 사이의 랜덤값 도출
-                let maxBound = Math.max(1, game.maxLv - 2);
-                let minBound = Math.max(1, game.maxLv - 4);
+                let maxBound = Math.max(1, game.maxLv - 3);
+                let minBound = Math.max(1, game.maxLv - 5);
                 let resultLv = Math.floor(Math.random() * (maxBound - minBound + 1)) + minBound;
                 
                 game.slots[idx] = resultLv;
@@ -592,14 +600,10 @@
             gsap.set(dragTarget, { x: e.clientX - startX, y: e.clientY - startY });
             
             const sellZone = document.getElementById('sell-zone');
-            
             if(e.clientY > window.innerHeight - 120) {
                 sellZone.classList.add('active');
-                if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
-                    sellZone.classList.add('hover');
-                } else {
-                    sellZone.classList.remove('hover');
-                }
+                if(e.clientY > window.innerHeight - SELL_THRESHOLD) sellZone.classList.add('hover');
+                else sellZone.classList.remove('hover');
             } else {
                 sellZone.classList.remove('active');
                 sellZone.classList.remove('hover');
@@ -612,46 +616,31 @@
             document.removeEventListener('pointerup', handlePointerUp);
             document.removeEventListener('pointercancel', handlePointerUp);
 
-            const sellZone = document.getElementById('sell-zone');
-            sellZone.classList.remove('active');
-            sellZone.classList.remove('hover');
+            draggingIdx = -1; 
 
-                        if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
+            const sellZone = document.getElementById('sell-zone');
+            sellZone.classList.remove('active'); sellZone.classList.remove('hover');
+
+            if(e.clientY > window.innerHeight - SELL_THRESHOLD) {
                 const lv = game.slots[originIdx];
-                
-                // 밀(Lv.1)일 경우 판매 금액을 0으로, 아닐 경우 정상 계산
                 let sellAmount = 0;
                 if (lv > 1) {
                     let itemGps = Math.pow(2, lv) - 1;
                     sellAmount = itemGps * 2;
                 }
                 
-                // 확인 창 메시지 분기 처리
-                let confirmMsg = lv === 1 
-                    ? `밀을 버리시겠습니까? (획득 금액: $0)` 
-                    : `이 요리를 판매하고 $${formatCompactNumber(sellAmount)}을(를) 획득하시겠습니까?`;
+                let confirmMsg = lv === 1 ? `밀을 버리시겠습니까? (획득 금액: $0)` : `이 요리를 판매하고 $${formatCompactNumber(sellAmount)}을(를) 획득하시겠습니까?`;
 
                 if(confirm(confirmMsg)) {
                     document.querySelectorAll('.slot')[originIdx].innerHTML = '';
                     game.slots[originIdx] = null;
-                    game.gold += sellAmount; // 밀은 0원이므로 수익 없음
-                    game.score += sellAmount;
-                    
-                    // 완료 메시지 분기 처리
-                    let toastMsg = lv === 1 
-                        ? `밀을 버렸습니다! 🗑️` 
-                        : `판매 완료! $${formatCompactNumber(sellAmount)} 획득! 💰`;
-                        
-                    showToast(toastMsg);
-                } else {
-                    gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
-                }
+                    game.gold += sellAmount; game.score += sellAmount;
+                    showToast(lv === 1 ? `밀을 버렸습니다! 🗑️` : `판매 완료! $${formatCompactNumber(sellAmount)} 획득! 💰`);
+                } else { gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 }); }
                 
-                if(dragTarget) dragTarget.style.zIndex = 2;
-                dragTarget = null;
+                if(dragTarget) dragTarget.style.zIndex = 2; dragTarget = null;
                 return;
             }
-
 
             dragTarget.style.visibility = 'hidden';
             const dropElem = document.elementFromPoint(e.clientX, e.clientY);
@@ -662,8 +651,8 @@
             if(dropSlot) {
                 const toIdx = parseInt(dropSlot.dataset.idx);
                 
-                if (game.slots[toIdx] === 'LUCKY') {
-                    gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 });
+                if (game.slots[toIdx] === 'LUCKY' || game.slots[toIdx] === 'LOCK') { 
+                    gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 }); 
                 }
                 else if(toIdx !== originIdx && game.slots[toIdx] === game.slots[originIdx]) {
                     const nextLv = game.slots[originIdx] + 1;
@@ -689,8 +678,7 @@
                 else { gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 }); }
             } else { gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 }); }
             
-            if(dragTarget) dragTarget.style.zIndex = 2;
-            dragTarget = null;
+            if(dragTarget) dragTarget.style.zIndex = 2; dragTarget = null;
         }
 
         function updateSidebarStats() {
@@ -704,43 +692,27 @@
             updateSidebarStats();
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebar-overlay');
+            const navUpgrade = document.getElementById('nav-upgrade');
+            
+            if(game.upgradesUnlocked && game.score >= 2000000000) {
+                navUpgrade.style.display = 'flex';
+            } else {
+                navUpgrade.style.display = 'none';
+            }
+            
             const isOpen = sb.classList.toggle('open');
             ov.style.display = isOpen ? 'block' : 'none';
         };
 
-        window.showOtherUserProfile = (nickname, icon, color, score, maxLv, playTime, spawnCount, mergeCount) => {
-            const body = document.getElementById('modal-body');
-            const title = document.getElementById('modal-title');
-            
-            title.innerText = '유저 프로필 🔍';
-            
-            const iconAnim = SHOP_ICONS.find(i => i.icon === icon)?.anim || '';
-            const colorAnim = SHOP_COLORS.find(c => c.color === color)?.anim || '';
-            
-            body.innerHTML = `
-                <div style="text-align:center; padding:10px 0 30px;">
-                    <div class="avatar-circle ${colorAnim}" style="background:${color}; width:80px; height:80px; margin:0 auto 15px; font-size:40px;">
-                        <div class="${iconAnim}">${icon}</div>
-                    </div>
-                    <h3 style="margin:0 0 5px; font-size:20px; font-weight:800;">${nickname}</h3>
-                    <div style="color:var(--gold); font-weight:800; margin-bottom: 25px; font-size: 15px;">🏆 ${formatCompactNumber(score)}</div>
-                    
-                    <div class="stats-box" style="text-align:left;">
-                        <div style="font-weight: 800; color: var(--main-text); margin-bottom: 10px; font-size: 14px;">📊 플레이 통계</div>
-                        <div class="stats-row"><span>최고 달성 요리</span><span class="stats-val">Lv.${maxLv}</span></div>
-                        <div class="stats-row"><span>총 플레이 시간</span><span class="stats-val">${Math.floor(playTime / 60)}분</span></div>
-                        <div class="stats-row"><span>재료 생성 횟수</span><span class="stats-val">${spawnCount.toLocaleString()}번</span></div>
-                        <div class="stats-row"><span>요리 합친 횟수</span><span class="stats-val">${mergeCount.toLocaleString()}번</span></div>
-                    </div>
-                    
-                    <button style="margin-top:25px; background:var(--line); color:var(--main-text);" onclick="openModal('rank')">⬅ 랭킹으로 돌아가기</button>
-                </div>
-            `;
-        };
-
-        window.showProbInfo = (e) => {
-            if(e) e.stopPropagation();
-            openModal('prob');
+        window.toggleRobotStatus = (type) => {
+            if (type === 'spawn') {
+                game.autoSpawnActive = !game.autoSpawnActive;
+                showToast(game.autoSpawnActive ? "🤖 자동 생성 로봇 ON" : "💤 자동 생성 로봇 OFF");
+            } else if (type === 'merge') {
+                game.autoMergeActive = !game.autoMergeActive;
+                showToast(game.autoMergeActive ? "🧩 자동 합성 로봇 ON" : "💤 자동 합성 로봇 OFF");
+            }
+            saveGameToDB();
         };
 
         window.openModal = async (type) => {
@@ -749,77 +721,89 @@
             body.innerHTML = '';
 
             if(type === 'shop') {
-                title.innerText = '꾸미기 상점 🛒';
-                let html = `<div class="shop-section-title">아바타</div><div class="shop-grid">`;
-                
+                title.innerText = '꾸미기 🛒';
+                let html = ``;
+
+                html += `<div class="shop-section-title">아바타</div><div class="shop-grid">`;
                 SHOP_ICONS.forEach(item => {
                     const isOwned = game.ownedIcons.includes(item.icon);
                     const isEquipped = game.profileIcon === item.icon;
                     let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
                         : isOwned ? `<button class="shop-btn btn-equip" onclick="equipItem('icon', '${item.icon}')">장착</button>`
                         : `<button class="shop-btn btn-buy" onclick="buyItem('icon', '${item.icon}')">$${formatPrice(item.price)}</button>`;
-                            
-                    html += `
-                        <div class="shop-card">
-                            <div class="shop-icon-preview ${item.anim}">${item.icon}</div>
-                            ${btnHtml}
-                        </div>`;
+                    html += `<div class="shop-card"><div class="shop-icon-preview ${item.anim}">${item.icon}</div>${btnHtml}</div>`;
                 });
 
                 html += `</div><div class="shop-section-title">배경</div><div class="shop-grid">`;
-                
                 SHOP_COLORS.forEach(item => {
                     const isOwned = game.ownedColors.includes(item.id);
                     const isEquipped = SHOP_COLORS.find(c => c.id === item.id).color === game.profileColor;
                     let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
                         : isOwned ? `<button class="shop-btn btn-equip" onclick="equipItem('color', '${item.id}')">장착</button>`
                         : `<button class="shop-btn btn-buy" onclick="buyItem('color', '${item.id}')">$${formatPrice(item.price)}</button>`;
-                            
-                    html += `
-                        <div class="shop-card">
-                            <div class="shop-color-preview ${item.anim}" style="background:${item.color};"></div> 
-                            ${btnHtml}
-                        </div>`;
+                    html += `<div class="shop-card"><div class="shop-color-preview ${item.anim}" style="background:${item.color};"></div>${btnHtml}</div>`;
                 });
                 html += `</div>`;
                 body.innerHTML = html;
             } 
-            else if(type === 'rank') {
-                title.innerText = '미슐랭 랭킹 🏆';
-                body.innerHTML = '<div style="text-align:center; padding:30px;">불러오는 중...</div>';
-                try {
-                    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(10));
-                    const snap = await getDocs(q);
-                    let html = "", rank = 1;
-                    snap.forEach(d => {
-                        const data = d.data();
-                        let rankIcon = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
-                        
-                        const isOnline = data.lastSaveTime ? (Date.now() - data.lastSaveTime) < 15000 : false;
-                        const statusText = isOnline ? `<span style="color:var(--online); font-weight:700;">온라인</span>` : getRelativeTime(data.lastSaveTime);
-                        const dotHtml = isOnline ? `<span class="online-dot"></span>` : ``;
+            else if(type === 'upgrade') {
+                title.innerText = '로봇 & 확장 🤖';
+                
+                let spawnCost = 100000000 * Math.pow(3, game.autoSpawnLv);
+                let mergeCost = 500000000 * Math.pow(4, game.autoMergeLv);
+                
+                let spawnInterval = Math.max(0.5, 5 - (game.autoSpawnLv * 0.4)).toFixed(1);
+                let mergeInterval = Math.max(0.2, 3 - (game.autoMergeLv * 0.3)).toFixed(1);
 
-                        html += `<div class="rank-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px 10px; border-bottom:1px solid var(--line);"
-                                    onclick="showOtherUserProfile('${data.nickname || '셰프'}', '${data.profileIcon || '👨‍🍳'}', '${data.profileColor || '#f5f5f7'}', ${data.score || 0}, ${data.maxLv || 1}, ${data.playTime || 0}, ${data.spawnCount || 0}, ${data.mergeCount || 0})">
-                                    <div style="display:flex; align-items:center; gap:12px;">
-                                        <span style="font-weight:800; width:30px; text-align:center;">${rankIcon}</span>
-                                        <div style="width:40px; height:40px; border-radius:50%; background:${data.profileColor||'#f5f5f7'}; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden;" class="${SHOP_COLORS.find(c => c.color === data.profileColor)?.anim || ''}">
-                                            <div class="${SHOP_ICONS.find(i => i.icon === data.profileIcon)?.anim || ''}">${data.profileIcon||'👨‍🍳'}</div>
-                                        </div>
-                                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                                            <div style="display:flex; align-items:center;">
-                                                <b style="font-size:15px;">${data.nickname}</b>${dotHtml}
-                                            </div>
-                                            <span style="font-size:12px; color:var(--sub-text); margin-top:2px;">${statusText}</span>
-                                        </div>
-                                    </div>
-                                    <div style="font-weight:800; color:var(--gold);">🏆 ${formatCompactNumber(data.score||0)}</div>
-                                 </div>`;
-                        rank++;
-                    });
-                    body.innerHTML = html;
-                } catch(e) { body.innerHTML = "<div style='text-align:center;'>오류가 발생했습니다.</div>"; }
-            } 
+                let spawnToggle = game.autoSpawnLv > 0 ? `
+                    <label class="switch" style="transform: scale(0.8); margin-left: auto;">
+                        <input type="checkbox" ${game.autoSpawnActive !== false ? 'checked' : ''} onchange="toggleRobotStatus('spawn')">
+                        <span class="slider"></span>
+                    </label>` : '';
+
+                let mergeToggle = game.autoMergeLv > 0 ? `
+                    <label class="switch" style="transform: scale(0.8); margin-left: auto;">
+                        <input type="checkbox" ${game.autoMergeActive !== false ? 'checked' : ''} onchange="toggleRobotStatus('merge')">
+                        <span class="slider"></span>
+                    </label>` : '';
+
+                let html = ``;
+
+                if(!game.is5x5Unlocked) {
+                    html += `
+                        <div style="background:var(--body-bg); padding:20px; border-radius:15px; margin-bottom:20px; text-align:left; border:2px dashed var(--danger);">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <h3 style="margin:0 0 5px; color:var(--danger); font-weight:800;">🍳 5x5 주방 확장</h3>
+                                    <div style="font-size:12px; color:var(--sub-text);">요리 공간을 25칸으로 증가!</div>
+                                </div>
+                                <button class="shop-btn btn-danger" style="width:auto; padding:10px 15px;" onclick="buy5x5()">$10B</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div style="background:var(--body-bg); padding:20px; border-radius:15px; margin-bottom:15px; text-align:left;">
+                        <div style="display:flex; align-items:center;">
+                            <h3 style="margin:0 0 5px; color:var(--robot); font-weight:800; display:flex; align-items:center; gap:8px;">⚡ 로봇 자동 생성기 <span style="font-size:12px; color:var(--main-text); background:var(--card-bg); padding:3px 8px; border-radius:10px;">Lv.${game.autoSpawnLv}</span></h3>
+                            ${spawnToggle}
+                        </div>
+                        <div style="font-size:13px; color:var(--sub-text); margin-bottom:15px;">현재: ${game.autoSpawnLv === 0 ? '작동 안함' : `<b>${spawnInterval}초</b>마다 재료 1개 생성`}</div>
+                        <button class="shop-btn btn-buy-special" style="padding:15px;" onclick="upgradeRobot('spawn', ${spawnCost})">레벨업 ($${formatCompactNumber(spawnCost)})</button>
+                    </div>
+
+                    <div style="background:var(--body-bg); padding:20px; border-radius:15px; text-align:left;">
+                        <div style="display:flex; align-items:center;">
+                            <h3 style="margin:0 0 5px; color:var(--robot); font-weight:800; display:flex; align-items:center; gap:8px;">🧩 로봇 자동 합성기 <span style="font-size:12px; color:var(--main-text); background:var(--card-bg); padding:3px 8px; border-radius:10px;">Lv.${game.autoMergeLv}</span></h3>
+                            ${mergeToggle}
+                        </div>
+                        <div style="font-size:13px; color:var(--sub-text); margin-bottom:15px;">현재: ${game.autoMergeLv === 0 ? '작동 안함' : `<b>${mergeInterval}초</b>마다 재료 합성`}</div>
+                        <button class="shop-btn btn-buy-special" style="padding:15px;" onclick="upgradeRobot('merge', ${mergeCost})">레벨업 ($${formatCompactNumber(mergeCost)})</button>
+                    </div>
+                `;
+                body.innerHTML = html;
+            }
             else if(type === 'settings') {
                 title.innerText = '설정 ⚙️';
                 const email = auth.currentUser ? auth.currentUser.email : "알 수 없음";
@@ -829,7 +813,6 @@
                     <div style="padding: 15px; background: var(--body-bg); border-radius: 15px; margin-bottom: 20px; font-size: 14px; font-weight: 600; text-align: center; color: var(--sub-text); word-break: break-all;">
                         로그인 계정<br><span style="color: var(--main-text); font-size: 16px;">${email}</span>
                     </div>
-                    
                     <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 12px;">
                         <span>닉네임 변경</span>
                         <div style="display: flex; width: 100%; gap: 10px;">
@@ -837,12 +820,10 @@
                             <button style="width: auto; padding: 10px 20px; font-size: 14px; background: var(--main-text); color: var(--card-bg);" onclick="changeNickname()">변경</button>
                         </div>
                     </div>
-
                     <div class="setting-row">
                         <span>다크 모드</span>
                         <label class="switch"><input type="checkbox" ${game.darkMode ? 'checked' : ''} onchange="toggleDarkMode()"><span class="slider"></span></label>
                     </div>
-                    
                     <div style="display:flex; gap:10px; margin-top:30px;">
                         <button style="background: var(--line); color: var(--main-text);" onclick="logout()">로그아웃</button>
                         <button class="btn-danger" onclick="resetData()">데이터 초기화</button>
@@ -855,13 +836,13 @@
                 let html = `<div style="padding: 15px; font-size: 15px; color: var(--main-text); line-height: 1.8;">`;
                 html += `<div style="text-align: center; margin-bottom: 15px; color: var(--sub-text); font-size: 13px; font-weight: 600;">현재 최고 레벨(Lv.${game.maxLv}) 기준 등장 확률입니다.</div>`;
                 html += `<div class="stats-box">`;
-                html += `<div class="stats-row"><span>🛎️ 럭키(황금 뚜껑)</span><span class="stats-val" style="color:var(--gold);">0.7%</span></div>`;
-                if(game.unlockedBaseLv >= 6) html += `<div class="stats-row"><span>${ITEM_DATA[5]} (Lv.6)</span><span class="stats-val">${(probs.p6 * 99.3).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 5) html += `<div class="stats-row"><span>${ITEM_DATA[4]} (Lv.5)</span><span class="stats-val">${(probs.p5 * 99.3).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 4) html += `<div class="stats-row"><span>${ITEM_DATA[3]} (Lv.4)</span><span class="stats-val">${(probs.p4 * 99.3).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 3) html += `<div class="stats-row"><span>${ITEM_DATA[2]} (Lv.3)</span><span class="stats-val">${(probs.p3 * 99.3).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 2) html += `<div class="stats-row"><span>${ITEM_DATA[1]} (Lv.2)</span><span class="stats-val">${(probs.p2 * 99.3).toFixed(1)}%</span></div>`;
-                html += `<div class="stats-row"><span>${ITEM_DATA[0]} (Lv.1)</span><span class="stats-val">${(probs.p1 * 99.3).toFixed(1)}%</span></div>`;
+                html += `<div class="stats-row"><span>🛎️ 럭키(황금 뚜껑)</span><span class="stats-val" style="color:var(--gold);">0.5%</span></div>`;
+                if(game.unlockedBaseLv >= 6) html += `<div class="stats-row"><span>${ITEM_DATA[5]} (Lv.6)</span><span class="stats-val">${(probs.p6 * 99.5).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 5) html += `<div class="stats-row"><span>${ITEM_DATA[4]} (Lv.5)</span><span class="stats-val">${(probs.p5 * 99.5).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 4) html += `<div class="stats-row"><span>${ITEM_DATA[3]} (Lv.4)</span><span class="stats-val">${(probs.p4 * 99.5).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 3) html += `<div class="stats-row"><span>${ITEM_DATA[2]} (Lv.3)</span><span class="stats-val">${(probs.p3 * 99.5).toFixed(1)}%</span></div>`;
+                if(game.unlockedBaseLv >= 2) html += `<div class="stats-row"><span>${ITEM_DATA[1]} (Lv.2)</span><span class="stats-val">${(probs.p2 * 99.5).toFixed(1)}%</span></div>`;
+                html += `<div class="stats-row"><span>${ITEM_DATA[0]} (Lv.1)</span><span class="stats-val">${(probs.p1 * 99.5).toFixed(1)}%</span></div>`;
                 html += `</div></div>`;
                 body.innerHTML = html;
             }
@@ -870,17 +851,37 @@
             setTimeout(() => { document.getElementById('main-modal').style.transform = 'translateY(0)'; }, 10);
         };
 
-        window.changeNickname = async () => {
-            const input = document.getElementById('nickname-input');
-            const newName = input.value.trim();
-            if(!newName) { showToast("닉네임을 입력해주세요!"); return; }
-            if(newName.length > 10) { showToast("닉네임은 10자 이내로 해주세요!"); return; }
+        window.buy5x5 = () => {
+            if(game.gold < 10000000000) { showToast("골드가 부족합니다! 💸"); return; }
+            if(game.is5x5Unlocked) { showToast("이미 5x5로 확장되었습니다!"); return; }
             
-            game.customNickname = newName;
-            document.getElementById('sb-nickname').innerText = newName;
+            game.gold -= 10000000000;
+            game.is5x5Unlocked = true;
+            for(let i=0; i<9; i++) game.slots.push(null);
             
-            await saveGameToDB(); 
-            showToast("닉네임이 성공적으로 변경되었습니다! ✨");
+            initGrid();
+            game.slots.forEach((lv, i) => { if(lv) addItem(lv, i, false); });
+            
+            showToast("✨ 보드가 5x5로 확장되었습니다!");
+            saveGameToDB(); openModal('upgrade');
+        };
+
+        window.upgradeRobot = (type, cost) => {
+            if(game.gold < cost) { showToast("골드가 부족합니다! 💸"); return; }
+            game.gold -= cost;
+            if (type === 'spawn') game.autoSpawnLv++;
+            else if (type === 'merge') game.autoMergeLv++;
+            
+            showToast("🤖 로봇이 업그레이드되었습니다!");
+            saveGameToDB(); openModal('upgrade');
+        };
+
+        window.changeNickname = () => {
+            const newVal = document.getElementById('nickname-input').value.trim();
+            if(newVal.length > 0 && newVal.length <= 10) {
+                game.customNickname = newVal; showToast("닉네임이 변경되었습니다! 👨‍🍳");
+                applyProfileUI(); saveGameToDB(); openModal('settings');
+            } else showToast("올바른 닉네임을 입력하세요. (1~10자)");
         };
 
         window.buyItem = (type, itemId) => {
@@ -907,14 +908,10 @@
             const iconObj = SHOP_ICONS.find(i => i.icon === game.profileIcon);
             const colorObj = SHOP_COLORS.find(c => c.color === game.profileColor);
             
-            const avatar = document.getElementById('sb-avatar');
-            const bg = document.getElementById('sb-avatar-bg');
-            
-            avatar.innerText = game.profileIcon;
-            avatar.className = iconObj && iconObj.anim ? iconObj.anim : "";
-            
-            bg.style.background = game.profileColor;
-            bg.className = "avatar-circle " + (colorObj && colorObj.anim ? colorObj.anim : "");
+            document.getElementById('sb-avatar').innerText = game.profileIcon;
+            document.getElementById('sb-avatar').className = iconObj && iconObj.anim ? iconObj.anim : "";
+            document.getElementById('sb-avatar-bg').style.background = game.profileColor;
+            document.getElementById('sb-avatar-bg').className = "avatar-circle " + (colorObj && colorObj.anim ? colorObj.anim : "");
         }
 
         window.closeModal = () => {
@@ -923,19 +920,18 @@
         };
 
         window.toggleDarkMode = () => { game.darkMode = !game.darkMode; document.body.classList.toggle('dark-mode'); saveGameToDB(); };
-        
         window.logout = () => { signOut(auth).then(() => { window.location.reload(); }); };
-        
+
         window.resetData = () => {
-            if(confirm("정말로 모든 데이터를 초기화하시겠습니까? 복구할 수 없습니다!")) {
+            const input = prompt("정말로 모든 데이터를 초기화하시겠습니까? 복구할 수 없습니다!\n초기화하려면 '확인'을 정확히 입력해주세요.");
+            if(input === '확인') {
                 game = { 
                     gold: 0, score: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: game.darkMode, 
                     lastSaveTime: Date.now(), profileIcon: "👨‍🍳", profileColor: "#f5f5f7", 
-                    ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"], playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: game.customNickname, unlockedBaseLv: 1
+                    ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"], playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: game.customNickname, unlockedBaseLv: 1, is5x5Unlocked: false, upgradesUnlocked: false, autoSpawnLv: 0, autoMergeLv: 0, autoSpawnActive: true, autoMergeActive: true
                 };
-                document.querySelectorAll('.slot').forEach(s => s.innerHTML = '');
-                saveGameToDB(); applyProfileUI(); closeModal(); showToast("데이터가 초기화되었습니다.");
-            }
+                initGrid(); saveGameToDB(); applyProfileUI(); closeModal(); showToast("데이터가 완전히 초기화되었습니다.");
+            } else if (input !== null) { showToast("초기화가 취소되었습니다."); }
         };
 
         function setupBottomSheet() {
@@ -953,8 +949,8 @@
             setTimeout(() => { t.style.top = '-100px'; }, 3000);
         }
 
-        window.closeOfflinePopup = () => {
-            const popup = document.getElementById('offline-popup');
+        window.closePopup = (id) => {
+            const popup = document.getElementById(id);
             popup.classList.remove('show');
             setTimeout(() => { popup.style.display = 'none'; }, 400);
         };
@@ -962,23 +958,113 @@
         function showUnlockPopup(icon) {
             document.getElementById('unlock-item-icon').innerText = icon;
             const popup = document.getElementById('unlock-popup');
-            popup.style.display = 'flex';
-            void popup.offsetWidth; 
-            popup.classList.add('show');
+            popup.style.display = 'flex'; void popup.offsetWidth; popup.classList.add('show');
             confetti({ particleCount: 80, spread: 70, origin: { y: 0.5 } });
         }
         
-        window.closeUnlockPopup = () => {
-            const popup = document.getElementById('unlock-popup');
-            popup.classList.remove('show');
-            setTimeout(() => { popup.style.display = 'none'; }, 400);
-        };
+        function performAutoMerge() {
+            if(isRobotMerging) return; 
+
+            let levelMap = {};
+            for(let i=0; i<game.slots.length; i++) {
+                let lv = game.slots[i];
+                if(lv && lv !== 'LUCKY' && lv !== 'LOCK' && i !== draggingIdx) {
+                    if(levelMap[lv] !== undefined) {
+                        let originIdx = levelMap[lv]; let toIdx = i; let nextLv = lv + 1;
+                        
+                        let slotsDom = document.querySelectorAll('.slot');
+                        let originItemDom = slotsDom[originIdx].querySelector('.item');
+                        let targetItemDom = slotsDom[toIdx].querySelector('.item');
+                        
+                        if(!originItemDom || !targetItemDom) return; 
+
+                        isRobotMerging = true;
+
+                        let oRect = originItemDom.getBoundingClientRect();
+                        let tRect = targetItemDom.getBoundingClientRect();
+
+                        let clone = originItemDom.cloneNode(true);
+                        document.body.appendChild(clone);
+                        clone.style.position = 'fixed';
+                        clone.style.left = oRect.left + 'px';
+                        clone.style.top = oRect.top + 'px';
+                        clone.style.width = oRect.width + 'px';
+                        clone.style.height = oRect.height + 'px';
+                        clone.style.zIndex = 1000;
+                        clone.style.opacity = '0.85'; 
+                        clone.style.margin = 0;
+                        clone.style.transition = 'none';
+
+                        game.slots[originIdx] = 'LOCK';
+                        game.slots[toIdx] = 'LOCK';
+                        originItemDom.style.opacity = '0'; 
+
+                        gsap.to(clone, {
+                            x: tRect.left - oRect.left, y: tRect.top - oRect.top, 
+                            duration: 0.25, ease: "power2.in",
+                            onComplete: () => {
+                                clone.remove();
+                                slotsDom[originIdx].innerHTML = '';
+                                slotsDom[toIdx].innerHTML = '';
+                                game.slots[originIdx] = null;
+                                game.slots[toIdx] = null;
+                                game.mergeCount++;
+                                addItem(nextLv, toIdx, true);
+                                
+                                let fx = document.createElement('div');
+                                fx.className = 'robot-fx'; fx.innerText = '✨';
+                                fx.style.fontSize = '24px';
+                                slotsDom[toIdx].appendChild(fx);
+                                gsap.to(fx, { scale: 1.2, opacity: 0, duration: 0.3, onComplete: () => fx.remove() });
+                                
+                                isRobotMerging = false;
+                            }
+                        });
+
+                        return; 
+                    }
+                    levelMap[lv] = i;
+                }
+            }
+        }
+
+        let lastRobotTick = Date.now();
+        function robotLoop() {
+            if (!auth.currentUser) { lastRobotTick = Date.now(); requestAnimationFrame(robotLoop); return; }
+            
+            let now = Date.now(); let dt = now - lastRobotTick; lastRobotTick = now;
+
+            if(game.autoSpawnLv > 0 && game.autoSpawnActive !== false) {
+                autoSpawnTimer += dt;
+                let interval = Math.max(500, 5000 - (game.autoSpawnLv * 400));
+                if(autoSpawnTimer >= interval) { spawnItem(false); autoSpawnTimer -= interval; }
+            }
+
+            if(game.autoMergeLv > 0 && game.autoMergeActive !== false && !isRobotMerging) {
+                autoMergeTimer += dt;
+                let interval = Math.max(200, 3000 - (game.autoMergeLv * 300));
+                if(autoMergeTimer >= interval) { 
+                    performAutoMerge(); 
+                    if(isRobotMerging) autoMergeTimer -= interval; 
+                    else autoMergeTimer = 0; 
+                }
+            }
+            requestAnimationFrame(robotLoop);
+        }
 
         function gameLoop() {
             let income = 0;
-            game.slots.forEach(lv => { if(lv && lv !== 'LUCKY') income += Math.pow(2, lv) - 1; });
+            game.slots.forEach(lv => { if(lv && lv !== 'LUCKY' && lv !== 'LOCK') income += Math.pow(2, lv) - 1; });
             game.gold += income; game.score += income; game.playTime += 1; 
             
+            if(game.score >= 2000000000 && !game.upgradesUnlocked) {
+                game.upgradesUnlocked = true;
+                document.getElementById('nav-upgrade').style.display = 'flex';
+                const popup = document.getElementById('robot-popup');
+                popup.style.display = 'flex'; void popup.offsetWidth; popup.classList.add('show');
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+            }
+
             document.getElementById('gold-val').innerText = formatCompactNumber(game.gold);
             document.getElementById('gps-val').innerText = formatCompactNumber(income);
             
@@ -993,14 +1079,8 @@
             if(!auth.currentUser) return;
             game.lastSaveTime = Date.now();
             let displayName = game.customNickname || auth.currentUser.displayName || "셰프";
-            try {
-                await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                    ...game, 
-                    nickname: displayName
-                }, { merge: true });
-            } catch (e) {
-                console.log("DB 저장 에러");
-            }
+            try { await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, nickname: displayName }, { merge: true }); } 
+            catch (e) { console.log("DB 저장 에러"); }
         }
         
         async function loadGameFromDB(user) {
@@ -1011,34 +1091,35 @@
                 if(!game.ownedIcons) game.ownedIcons = ["👨‍🍳"];
                 if(!game.ownedColors) game.ownedColors = ["c_def"];
                 if(!game.unlockedBaseLv) game.unlockedBaseLv = 1;
-                if(!game.customNickname && data.nickname) game.customNickname = data.nickname;
-
-                document.querySelectorAll('.slot').forEach(s => s.innerHTML = '');
+                
+                if(game.autoSpawnActive === undefined) game.autoSpawnActive = true;
+                if(game.autoMergeActive === undefined) game.autoMergeActive = true;
+                
+                if(game.is5x5Unlocked && game.slots.length < 25) { game.slots.push(...Array(25 - game.slots.length).fill(null)); }
+                
+                initGrid();
                 game.slots.forEach((lv, i) => { if(lv) addItem(lv, i, false); });
+                
                 if(game.darkMode) document.body.classList.add('dark-mode');
+                
+                if(game.score >= 2000000000) game.upgradesUnlocked = true;
+                else game.upgradesUnlocked = false;
 
                 if (game.lastSaveTime) {
                     let offlineSecs = Math.floor((Date.now() - game.lastSaveTime) / 1000);
                     if (offlineSecs > 86400) offlineSecs = 86400; 
                     if (offlineSecs > 60) {
                         let currentGps = 0;
-                        game.slots.forEach(lv => { if(lv && lv !== 'LUCKY') currentGps += Math.pow(2, lv) - 1; });
-                        
+                        game.slots.forEach(lv => { if(lv && lv !== 'LUCKY' && lv !== 'LOCK') currentGps += Math.pow(2, lv) - 1; });
                         let offlineGold = Math.floor((offlineSecs * currentGps) / 8); 
                         if (offlineGold > 0) {
                             game.gold += offlineGold; game.score += offlineGold; game.offlineEarnings += offlineGold;
-                            
-                            let h = Math.floor(offlineSecs / 3600);
-                            let m = Math.floor((offlineSecs % 3600) / 60);
-                            let timeStr = h > 0 ? `${h}시간 ${m}분` : `${m}분`;
-                            
+                            let h = Math.floor(offlineSecs / 3600); let m = Math.floor((offlineSecs % 3600) / 60);
                             setTimeout(() => { 
-                                document.getElementById('offline-time-val').innerText = timeStr;
+                                document.getElementById('offline-time-val').innerText = h > 0 ? `${h}시간 ${m}분` : `${m}분`;
                                 document.getElementById('offline-gold-val').innerText = formatCompactNumber(offlineGold);
                                 const popup = document.getElementById('offline-popup');
-                                popup.style.display = 'flex';
-                                void popup.offsetWidth; 
-                                popup.classList.add('show');
+                                popup.style.display = 'flex'; void popup.offsetWidth; popup.classList.add('show');
                                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                             }, 1000); 
                         }
@@ -1074,7 +1155,7 @@
 
         window.addEventListener("beforeunload", () => { if(auth.currentUser) saveGameToDB(); });
 
-        initGrid(); setupBottomSheet(); gameLoop();
+        initGrid(); setupBottomSheet(); gameLoop(); requestAnimationFrame(robotLoop);
     </script>
 </body>
 </html>
