@@ -31,7 +31,7 @@
             padding-top: 70px; 
         }
 
-        /* 모바일 확대(더블 탭 줌) 방지용 CSS */
+        /* 모바일 확대 방지 및 연타 허용 */
         button, .slot, .nav-item, .shop-btn, .shop-card, #menu-trigger, #prob-btn {
             touch-action: manipulation;
         }
@@ -355,19 +355,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        // getDocs, collection 등 랭킹을 불러오기 위한 함수 임포트 추가
         import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-
-        // 모바일 화면 더블탭 줌 방지 스크립트 추가
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            let now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, { passive: false });
 
         const firebaseConfig = {
             apiKey: "AIzaSyCnxyvzVbz8DmDGZnQ-LRUS8TYvycRGero",
@@ -419,12 +408,24 @@
         let draggingIdx = -1;       
         const SELL_THRESHOLD = 60; 
 
+        // 랭킹 유저 데이터 캐싱용 객체
+        window.rankingDataCache = {};
+
         window.formatCompactNumber = (num) => {
             if (num < 10000) return Math.floor(num).toLocaleString();
             if (num < 1000000) return parseFloat((num / 1000).toFixed(2)) + 'K';
             if (num < 1000000000) return parseFloat((num / 1000000).toFixed(2)) + 'M';
             if (num < 1000000000000) return parseFloat((num / 1000000000).toFixed(2)) + 'B';
             return parseFloat((num / 1000000000000).toFixed(2)) + 'T';
+        };
+
+        window.formatTimeAgo = (ts) => {
+            if (!ts) return "오래 전";
+            let diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 60) return "방금 전";
+            if (diff < 3600) return `${Math.floor(diff/60)}분 전`;
+            if (diff < 86400) return `${Math.floor(diff/3600)}시간 전`;
+            return `${Math.floor(diff/86400)}일 전`;
         };
 
         function formatPrice(num) {
@@ -710,9 +711,12 @@
             const ov = document.getElementById('sidebar-overlay');
             const navUpgrade = document.getElementById('nav-upgrade');
             
-            if(game.upgradesUnlocked && game.score >= 2000000000) {
+            // 20억(2B) 이상일 때만 메뉴 표시 확실히 보장
+            if(game.score >= 2000000000) {
+                game.upgradesUnlocked = true;
                 navUpgrade.style.display = 'flex';
             } else {
+                game.upgradesUnlocked = false;
                 navUpgrade.style.display = 'none';
             }
             
@@ -729,6 +733,35 @@
                 showToast(game.autoMergeActive ? "🧩 자동 합성 로봇 ON" : "💤 자동 합성 로봇 OFF");
             }
             saveGameToDB();
+        };
+
+        // 랭킹 유저 클릭 시 상세 정보 모달
+        window.showPlayerProfile = (uid) => {
+            const data = window.rankingDataCache[uid];
+            if (!data) return;
+            
+            const body = document.getElementById('modal-body');
+            document.getElementById('modal-title').innerText = '유저 정보 🔍';
+            
+            let bgColor = data.profileColor || '#f5f5f7';
+            let icon = data.profileIcon || '👨‍🍳';
+
+            body.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: ${bgColor}; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">${icon}</div>
+                    <h3 style="margin: 0 0 5px; font-size: 22px;">${data.nickname || '셰프'}</h3>
+                    <div style="color: var(--gold); font-weight: 800; font-size: 16px; margin-bottom: 20px;">🏆 ${formatCompactNumber(data.score || 0)}</div>
+
+                    <div class="stats-box" style="text-align: left;">
+                        <div style="font-weight: 800; color: var(--main-text); margin-bottom: 10px; font-size: 14px;">📊 플레이 통계</div>
+                        <div class="stats-row"><span>최고 달성 요리</span><span class="stats-val">Lv.${data.maxLv || 1}</span></div>
+                        <div class="stats-row"><span>총 플레이 시간</span><span class="stats-val">${Math.floor((data.playTime || 0) / 60)}분</span></div>
+                        <div class="stats-row"><span>재료 생성 횟수</span><span class="stats-val">${(data.spawnCount || 0).toLocaleString()}번</span></div>
+                        <div class="stats-row"><span>요리 합친 횟수</span><span class="stats-val">${(data.mergeCount || 0).toLocaleString()}번</span></div>
+                    </div>
+                    <button class="shop-btn btn-equip" style="margin-top: 25px; padding: 15px;" onclick="openModal('rank')">⬅ 랭킹으로 돌아가기</button>
+                </div>
+            `;
         };
 
         window.openModal = async (type) => {
@@ -820,12 +853,10 @@
                 `;
                 body.innerHTML = html;
             }
-            // 랭킹 메뉴 추가됨 (수정됨)
             else if(type === 'rank') {
                 title.innerText = '미슐랭 랭킹 🏆';
                 body.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--sub-text);"><div style="font-size:30px; margin-bottom:10px;" class="anim-spin">🔄</div>불러오는 중...</div>`;
                 
-                // 모달을 먼저 열어서 로딩 화면을 보여줌
                 document.getElementById('modal-overlay').style.display = 'flex';
                 setTimeout(() => { document.getElementById('main-modal').style.transform = 'translateY(0)'; }, 10);
 
@@ -834,19 +865,36 @@
                     const querySnapshot = await getDocs(q);
                     let html = `<div style="padding: 10px 0;">`;
                     let rank = 1;
+                    const now = Date.now();
                     
                     querySnapshot.forEach((doc) => {
                         const data = doc.data();
                         const isMe = auth.currentUser && doc.id === auth.currentUser.uid;
                         let rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
                         
+                        // 배경색 및 아이콘 수정
+                        let bgColor = data.profileColor || '#f5f5f7';
+                        let icon = data.profileIcon || '👨‍🍳';
+
+                        // 온라인 상태 (3분 이내 접속 시)
+                        let lastActive = data.lastActive || 0;
+                        let isOnline = (now - lastActive) < 3 * 60 * 1000;
+                        let statusHtml = isOnline
+                            ? `<span style="color: var(--online); font-size: 11px; font-weight: 700;">🟢 온라인</span>`
+                            : `<span style="color: var(--sub-text); font-size: 11px;">마지막 접속: ${formatTimeAgo(lastActive)}</span>`;
+
+                        // 클릭용 데이터 캐싱
+                        window.rankingDataCache[doc.id] = data;
+
+                        // 배경이 적용된 아바타 및 클릭 가능한 Row
                         html += `
-                            <div style="display:flex; align-items:center; padding:15px; border-bottom:1px solid var(--line); ${isMe ? 'background:rgba(0,122,255,0.05); border-radius:12px;' : ''}">
+                            <div onclick="showPlayerProfile('${doc.id}')" style="display:flex; align-items:center; padding:15px; border-bottom:1px solid var(--line); cursor:pointer; transition: background 0.2s; ${isMe ? 'background:rgba(0,122,255,0.05); border-radius:12px;' : ''}">
                                 <div style="font-size:18px; font-weight:800; width:45px; text-align:center; color:var(--sub-text);">${rankIcon}</div>
-                                <div style="font-size:30px; margin:0 15px;">${data.profileIcon || '👨‍🍳'}</div>
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: ${bgColor}; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">${icon}</div>
                                 <div style="flex:1;">
                                     <div style="font-weight:800; font-size:15px; color:var(--main-text);">${data.nickname || '셰프'} ${isMe ? '<span style="color:var(--blue); font-size:12px;">(나)</span>' : ''}</div>
-                                    <div style="font-size:13px; color:var(--gold); font-weight:700;">🏆 ${formatCompactNumber(data.score || 0)}</div>
+                                    <div style="font-size:13px; color:var(--gold); font-weight:700; margin: 3px 0;">🏆 ${formatCompactNumber(data.score || 0)}</div>
+                                    <div>${statusHtml}</div>
                                 </div>
                             </div>
                         `;
@@ -859,7 +907,7 @@
                     body.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--danger);">랭킹을 불러오지 못했습니다.<br>잠시 후 다시 시도해주세요.</div>`;
                     console.error("랭킹 로드 에러:", e);
                 }
-                return; // 모달 애니메이션을 이미 호출했으므로 return
+                return; 
             }
             else if(type === 'settings') {
                 title.innerText = '설정 ⚙️';
@@ -1091,6 +1139,12 @@
             
             let now = Date.now(); let dt = now - lastRobotTick; lastRobotTick = now;
 
+            // 점수 20억(2B) 미만이면 로봇 시스템 원천 차단
+            if (game.score < 2000000000) {
+                requestAnimationFrame(robotLoop);
+                return;
+            }
+
             if(game.autoSpawnLv > 0 && game.autoSpawnActive !== false) {
                 autoSpawnTimer += dt;
                 let interval = Math.max(500, 5000 - (game.autoSpawnLv * 400));
@@ -1136,7 +1190,8 @@
             if(!auth.currentUser) return;
             game.lastSaveTime = Date.now();
             let displayName = game.customNickname || auth.currentUser.displayName || "셰프";
-            try { await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, nickname: displayName }, { merge: true }); } 
+            // lastActive(최근 접속 시간) 기록 추가
+            try { await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, nickname: displayName, lastActive: Date.now() }, { merge: true }); } 
             catch (e) { console.log("DB 저장 에러"); }
         }
         
@@ -1202,6 +1257,7 @@
                 loadGameFromDB(user);
                 
                 if(dbSaveTimer) clearInterval(dbSaveTimer);
+                // 5초마다 DB에 현재 상태(온라인 접속 시간 포함) 업데이트
                 dbSaveTimer = setInterval(saveGameToDB, 5000);
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
