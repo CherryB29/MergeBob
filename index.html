@@ -205,12 +205,14 @@
         .offline-btn:active { transform: scale(0.96); }
         .robot-btn { background: var(--robot); box-shadow: 0 10px 20px rgba(175, 82, 222, 0.2); }
 
+        .online-dot { width: 8px; height: 8px; background: var(--online); border-radius: 50%; box-shadow: 0 0 5px var(--online); display: inline-block; animation: flashGlow 1.5s infinite; }
+
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-6px) rotate(5deg); } }
         @keyframes pulseBg { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        @keyframes flashGlow { 0%, 100% { filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,255,0.2)); } 50% { filter: brightness(1.5) drop-shadow(0 0 20px rgba(255,255,255,0.8)); } }
+        @keyframes flashGlow { 0%, 100% { filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,255,0.2)); } 50% { filter: brightness(1.5) drop-shadow(0 0 15px rgba(255,255,255,0.6)); } }
         @keyframes rainbowSpin { 100% { transform: rotate(360deg); filter: hue-rotate(360deg); } }
 
         .anim-spin { animation: spin 4s linear infinite; display: inline-block; }
@@ -408,7 +410,6 @@
         let draggingIdx = -1;       
         const SELL_THRESHOLD = 60; 
 
-        // 랭킹 유저 데이터 캐싱용 객체
         window.rankingDataCache = {};
 
         window.formatCompactNumber = (num) => {
@@ -422,7 +423,7 @@
         window.formatTimeAgo = (ts) => {
             if (!ts) return "오래 전";
             let diff = Math.floor((Date.now() - ts) / 1000);
-            if (diff < 60) return "방금 전";
+            if (diff < 60) return `${diff}초 전`;
             if (diff < 3600) return `${Math.floor(diff/60)}분 전`;
             if (diff < 86400) return `${Math.floor(diff/3600)}시간 전`;
             return `${Math.floor(diff/86400)}일 전`;
@@ -711,7 +712,6 @@
             const ov = document.getElementById('sidebar-overlay');
             const navUpgrade = document.getElementById('nav-upgrade');
             
-            // 20억(2B) 이상일 때만 메뉴 표시 확실히 보장
             if(game.score >= 2000000000) {
                 game.upgradesUnlocked = true;
                 navUpgrade.style.display = 'flex';
@@ -735,7 +735,6 @@
             saveGameToDB();
         };
 
-        // 랭킹 유저 클릭 시 상세 정보 모달
         window.showPlayerProfile = (uid) => {
             const data = window.rankingDataCache[uid];
             if (!data) return;
@@ -746,9 +745,15 @@
             let bgColor = data.profileColor || '#f5f5f7';
             let icon = data.profileIcon || '👨‍🍳';
 
+            let iconObj = SHOP_ICONS.find(i => i.icon === data.profileIcon) || { anim: "" };
+            let colorObj = SHOP_COLORS.find(c => c.color.replace(/\s/g, '') === (data.profileColor || '').replace(/\s/g, '')) || { anim: "" };
+            let iconAnim = iconObj.anim;
+            let colorAnim = colorObj.anim;
+            let bgStyle = bgColor.includes('gradient') ? `background-image: ${bgColor};` : `background-color: ${bgColor};`;
+
             body.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; background: ${bgColor}; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">${icon}</div>
+                    <div class="avatar-circle ${colorAnim}" style="width: 80px; height: 80px; border-radius: 50%; ${bgStyle} display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><div class="${iconAnim}">${icon}</div></div>
                     <h3 style="margin: 0 0 5px; font-size: 22px;">${data.nickname || '셰프'}</h3>
                     <div style="color: var(--gold); font-weight: 800; font-size: 16px; margin-bottom: 20px;">🏆 ${formatCompactNumber(data.score || 0)}</div>
 
@@ -769,33 +774,12 @@
             const title = document.getElementById('modal-title');
             body.innerHTML = '';
 
-            if(type === 'shop') {
-                title.innerText = '꾸미기 🛒';
-                let html = ``;
-
-                html += `<div class="shop-section-title">아바타</div><div class="shop-grid">`;
-                SHOP_ICONS.forEach(item => {
-                    const isOwned = game.ownedIcons.includes(item.icon);
-                    const isEquipped = game.profileIcon === item.icon;
-                    let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
-                        : isOwned ? `<button class="shop-btn btn-equip" onclick="equipItem('icon', '${item.icon}')">장착</button>`
-                        : `<button class="shop-btn btn-buy" onclick="buyItem('icon', '${item.icon}')">$${formatPrice(item.price)}</button>`;
-                    html += `<div class="shop-card"><div class="shop-icon-preview ${item.anim}">${item.icon}</div>${btnHtml}</div>`;
-                });
-
-                html += `</div><div class="shop-section-title">배경</div><div class="shop-grid">`;
-                SHOP_COLORS.forEach(item => {
-                    const isOwned = game.ownedColors.includes(item.id);
-                    const isEquipped = SHOP_COLORS.find(c => c.id === item.id).color === game.profileColor;
-                    let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
-                        : isOwned ? `<button class="shop-btn btn-equip" onclick="equipItem('color', '${item.id}')">장착</button>`
-                        : `<button class="shop-btn btn-buy" onclick="buyItem('color', '${item.id}')">$${formatPrice(item.price)}</button>`;
-                    html += `<div class="shop-card"><div class="shop-color-preview ${item.anim}" style="background:${item.color};"></div>${btnHtml}</div>`;
-                });
-                html += `</div>`;
-                body.innerHTML = html;
-            } 
-            else if(type === 'upgrade') {
+            if (type === 'upgrade') {
+                if (game.score < 2000000000) {
+                    showToast("점수 20억을 먼저 달성하세요!");
+                    closeModal();
+                    return;
+                }
                 title.innerText = '로봇 & 확장 🤖';
                 
                 let spawnCost = 100000000 * Math.pow(3, game.autoSpawnLv);
@@ -853,6 +837,33 @@
                 `;
                 body.innerHTML = html;
             }
+            else if(type === 'shop') {
+                title.innerText = '꾸미기 🛒';
+                let html = ``;
+
+                html += `<div class="shop-section-title">아바타</div><div class="shop-grid">`;
+                SHOP_ICONS.forEach(item => {
+                    const isOwned = game.ownedIcons.includes(item.icon);
+                    const isEquipped = game.profileIcon === item.icon;
+                    let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
+                        : isOwned ? `<button class="shop-btn btn-equip" onclick="equipItem('icon', '${item.icon}')">장착</button>`
+                        : `<button class="shop-btn btn-buy" onclick="buyItem('icon', '${item.icon}')">$${formatPrice(item.price)}</button>`;
+                    html += `<div class="shop-card"><div class="shop-icon-preview ${item.anim}">${item.icon}</div>${btnHtml}</div>`;
+                });
+
+                html += `</div><div class="shop-section-title">배경</div><div class="shop-grid">`;
+                SHOP_COLORS.forEach(item => {
+                    const isOwned = game.ownedColors.includes(item.id);
+                    const isEquipped = SHOP_COLORS.find(c => c.id === item.id).color === game.profileColor;
+                    let bgStyle = item.color.includes('gradient') ? `background-image: ${item.color};` : `background-color: ${item.color};`;
+                    let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
+                        : isOwned ? `<button class="shop-btn btn-equip" onclick="equipItem('color', '${item.id}')">장착</button>`
+                        : `<button class="shop-btn btn-buy" onclick="buyItem('color', '${item.id}')">$${formatPrice(item.price)}</button>`;
+                    html += `<div class="shop-card"><div class="shop-color-preview ${item.anim}" style="${bgStyle}"></div>${btnHtml}</div>`;
+                });
+                html += `</div>`;
+                body.innerHTML = html;
+            } 
             else if(type === 'rank') {
                 title.innerText = '미슐랭 랭킹 🏆';
                 body.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--sub-text);"><div style="font-size:30px; margin-bottom:10px;" class="anim-spin">🔄</div>불러오는 중...</div>`;
@@ -872,25 +883,31 @@
                         const isMe = auth.currentUser && doc.id === auth.currentUser.uid;
                         let rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
                         
-                        // 배경색 및 아이콘 수정
                         let bgColor = data.profileColor || '#f5f5f7';
                         let icon = data.profileIcon || '👨‍🍳';
 
-                        // 온라인 상태 (3분 이내 접속 시)
+                        let iconObj = SHOP_ICONS.find(i => i.icon === data.profileIcon) || { anim: "" };
+                        let colorObj = SHOP_COLORS.find(c => c.color.replace(/\s/g, '') === (data.profileColor || '').replace(/\s/g, '')) || { anim: "" };
+                        let iconAnim = iconObj.anim;
+                        let colorAnim = colorObj.anim;
+                        let bgStyle = bgColor.includes('gradient') ? `background-image: ${bgColor};` : `background-color: ${bgColor};`;
+
                         let lastActive = data.lastActive || 0;
                         let isOnline = (now - lastActive) < 3 * 60 * 1000;
+                        
                         let statusHtml = isOnline
-                            ? `<span style="color: var(--online); font-size: 11px; font-weight: 700;">🟢 온라인</span>`
-                            : `<span style="color: var(--sub-text); font-size: 11px;">마지막 접속: ${formatTimeAgo(lastActive)}</span>`;
+                            ? `<div style="display:inline-flex; align-items:center; gap:6px; background: rgba(52, 199, 89, 0.15); padding: 5px 10px; border-radius: 12px; border: 1px solid rgba(52, 199, 89, 0.3); margin-top: 4px;">
+                                   <span class="online-dot" style="width: 6px; height: 6px;"></span>
+                                   <span style="color: var(--online); font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">ONLINE</span>
+                               </div>`
+                            : `<span style="color: var(--sub-text); font-size: 11px; display:inline-block; margin-top: 4px;">최근 접속: ${formatTimeAgo(lastActive)}</span>`;
 
-                        // 클릭용 데이터 캐싱
                         window.rankingDataCache[doc.id] = data;
 
-                        // 배경이 적용된 아바타 및 클릭 가능한 Row
                         html += `
                             <div onclick="showPlayerProfile('${doc.id}')" style="display:flex; align-items:center; padding:15px; border-bottom:1px solid var(--line); cursor:pointer; transition: background 0.2s; ${isMe ? 'background:rgba(0,122,255,0.05); border-radius:12px;' : ''}">
                                 <div style="font-size:18px; font-weight:800; width:45px; text-align:center; color:var(--sub-text);">${rankIcon}</div>
-                                <div style="width: 50px; height: 50px; border-radius: 50%; background: ${bgColor}; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">${icon}</div>
+                                <div class="avatar-circle ${colorAnim}" style="width: 50px; height: 50px; border-radius: 50%; ${bgStyle} display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><div class="${iconAnim}">${icon}</div></div>
                                 <div style="flex:1;">
                                     <div style="font-weight:800; font-size:15px; color:var(--main-text);">${data.nickname || '셰프'} ${isMe ? '<span style="color:var(--blue); font-size:12px;">(나)</span>' : ''}</div>
                                     <div style="font-size:13px; color:var(--gold); font-weight:700; margin: 3px 0;">🏆 ${formatCompactNumber(data.score || 0)}</div>
@@ -1010,13 +1027,21 @@
 
         function applyProfileUI() {
             if(!auth.currentUser) return;
-            const iconObj = SHOP_ICONS.find(i => i.icon === game.profileIcon);
-            const colorObj = SHOP_COLORS.find(c => c.color === game.profileColor);
+            const iconObj = SHOP_ICONS.find(i => i.icon === game.profileIcon) || { anim: "" };
+            const colorObj = SHOP_COLORS.find(c => c.color.replace(/\s/g, '') === (game.profileColor || '').replace(/\s/g, '')) || { anim: "" };
             
             document.getElementById('sb-avatar').innerText = game.profileIcon;
-            document.getElementById('sb-avatar').className = iconObj && iconObj.anim ? iconObj.anim : "";
-            document.getElementById('sb-avatar-bg').style.background = game.profileColor;
-            document.getElementById('sb-avatar-bg').className = "avatar-circle " + (colorObj && colorObj.anim ? colorObj.anim : "");
+            document.getElementById('sb-avatar').className = iconObj.anim;
+            
+            const avatarBg = document.getElementById('sb-avatar-bg');
+            if(game.profileColor.includes('gradient')) {
+                avatarBg.style.backgroundImage = game.profileColor;
+                avatarBg.style.backgroundColor = 'transparent';
+            } else {
+                avatarBg.style.backgroundColor = game.profileColor;
+                avatarBg.style.backgroundImage = 'none';
+            }
+            avatarBg.className = "avatar-circle " + colorObj.anim;
         }
 
         window.closeModal = () => {
@@ -1139,8 +1164,13 @@
             
             let now = Date.now(); let dt = now - lastRobotTick; lastRobotTick = now;
 
-            // 점수 20억(2B) 미만이면 로봇 시스템 원천 차단
             if (game.score < 2000000000) {
+                requestAnimationFrame(robotLoop);
+                return;
+            }
+
+            // 오프라인이거나 백그라운드 전환으로 인해 시간(dt)이 과도하게 튀었을 경우 로봇 일시정지 (폭주 방지)
+            if (dt > 1000) {
                 requestAnimationFrame(robotLoop);
                 return;
             }
@@ -1190,8 +1220,11 @@
             if(!auth.currentUser) return;
             game.lastSaveTime = Date.now();
             let displayName = game.customNickname || auth.currentUser.displayName || "셰프";
-            // lastActive(최근 접속 시간) 기록 추가
-            try { await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, nickname: displayName, lastActive: Date.now() }, { merge: true }); } 
+            
+            // LOCK 상태 버그 청소 필터링
+            const safeSlots = game.slots.map(s => s === 'LOCK' ? null : s);
+            
+            try { await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, slots: safeSlots, nickname: displayName, lastActive: Date.now() }, { merge: true }); } 
             catch (e) { console.log("DB 저장 에러"); }
         }
         
@@ -1200,6 +1233,10 @@
             if(snap.exists()) {
                 const data = snap.data();
                 game = { ...game, ...data }; 
+                
+                // 불러올 때도 LOCK 잔재물이 있다면 청소
+                if(game.slots) game.slots = game.slots.map(s => s === 'LOCK' ? null : s);
+                
                 if(!game.ownedIcons) game.ownedIcons = ["👨‍🍳"];
                 if(!game.ownedColors) game.ownedColors = ["c_def"];
                 if(!game.unlockedBaseLv) game.unlockedBaseLv = 1;
@@ -1257,7 +1294,6 @@
                 loadGameFromDB(user);
                 
                 if(dbSaveTimer) clearInterval(dbSaveTimer);
-                // 5초마다 DB에 현재 상태(온라인 접속 시간 포함) 업데이트
                 dbSaveTimer = setInterval(saveGameToDB, 5000);
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
