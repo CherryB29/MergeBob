@@ -31,6 +31,11 @@
             padding-top: 70px; 
         }
 
+        /* 모바일 확대(더블 탭 줌) 방지용 CSS */
+        button, .slot, .nav-item, .shop-btn, .shop-card, #menu-trigger, #prob-btn {
+            touch-action: manipulation;
+        }
+
         .icon { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
         #header { width: 100%; text-align: center; z-index: 10; margin-bottom: 20px; }
@@ -332,7 +337,7 @@
         <div class="btn-group">
             <div class="spawn-wrapper">
                 <button id="spawn-btn" onclick="spawnItem(true)">⚡ 재료 생성</button>
-                <div id="prob-btn" onclick="showProbInfo(event)">i</div>
+                <div id="prob-btn" onclick="openModal('prob')">i</div>
             </div>
         </div>
     </div>
@@ -350,8 +355,19 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+        // getDocs, collection 등 랭킹을 불러오기 위한 함수 임포트 추가
+        import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+        // 모바일 화면 더블탭 줌 방지 스크립트 추가
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            let now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
 
         const firebaseConfig = {
             apiKey: "AIzaSyCnxyvzVbz8DmDGZnQ-LRUS8TYvycRGero",
@@ -803,6 +819,47 @@
                     </div>
                 `;
                 body.innerHTML = html;
+            }
+            // 랭킹 메뉴 추가됨 (수정됨)
+            else if(type === 'rank') {
+                title.innerText = '미슐랭 랭킹 🏆';
+                body.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--sub-text);"><div style="font-size:30px; margin-bottom:10px;" class="anim-spin">🔄</div>불러오는 중...</div>`;
+                
+                // 모달을 먼저 열어서 로딩 화면을 보여줌
+                document.getElementById('modal-overlay').style.display = 'flex';
+                setTimeout(() => { document.getElementById('main-modal').style.transform = 'translateY(0)'; }, 10);
+
+                try {
+                    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(20));
+                    const querySnapshot = await getDocs(q);
+                    let html = `<div style="padding: 10px 0;">`;
+                    let rank = 1;
+                    
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const isMe = auth.currentUser && doc.id === auth.currentUser.uid;
+                        let rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
+                        
+                        html += `
+                            <div style="display:flex; align-items:center; padding:15px; border-bottom:1px solid var(--line); ${isMe ? 'background:rgba(0,122,255,0.05); border-radius:12px;' : ''}">
+                                <div style="font-size:18px; font-weight:800; width:45px; text-align:center; color:var(--sub-text);">${rankIcon}</div>
+                                <div style="font-size:30px; margin:0 15px;">${data.profileIcon || '👨‍🍳'}</div>
+                                <div style="flex:1;">
+                                    <div style="font-weight:800; font-size:15px; color:var(--main-text);">${data.nickname || '셰프'} ${isMe ? '<span style="color:var(--blue); font-size:12px;">(나)</span>' : ''}</div>
+                                    <div style="font-size:13px; color:var(--gold); font-weight:700;">🏆 ${formatCompactNumber(data.score || 0)}</div>
+                                </div>
+                            </div>
+                        `;
+                        rank++;
+                    });
+                    if(rank === 1) html += `<div style="text-align:center; padding:30px; color:var(--sub-text);">랭킹 데이터가 없습니다.</div>`;
+                    html += `</div>`;
+                    body.innerHTML = html;
+                } catch(e) {
+                    body.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--danger);">랭킹을 불러오지 못했습니다.<br>잠시 후 다시 시도해주세요.</div>`;
+                    console.error("랭킹 로드 에러:", e);
+                }
+                return; // 모달 애니메이션을 이미 호출했으므로 return
             }
             else if(type === 'settings') {
                 title.innerText = '설정 ⚙️';
