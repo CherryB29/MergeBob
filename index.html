@@ -1492,13 +1492,13 @@
             setTimeout(gameLoop, 1000);
         }
 
-        // 🛡️ 디바이스 간 동기화 강화: 클라우드 우선 로드 (로컬은 오프라인 백업)
+        // 🛡️ 디바이스 간 동기화 강화: 클라우드 우선 로드 (로컬은 오프라인 백업) -> 버그 수정: 항상 최신 저장시간 비교
         async function loadGameFromDB(user) {
             console.log("loadGameFromDB 시작, user:", user.uid);
             let cloudData = null;
             let localData = null;
 
-            // 1. 클라우드 데이터 우선 탐색 (디바이스 간 동기화 보장)
+            // 1. 클라우드 데이터 로드 시도
             try {
                 console.log("클라우드 데이터 로드 시도");
                 const snap = await getDoc(doc(db, "users", user.uid));
@@ -1512,23 +1512,40 @@
                 console.error("클라우드 로드 실패", e);
             }
 
-            // 2. 클라우드가 없으면 로컬 백업 사용 (오프라인 지원)
-            if (!cloudData) {
-                try {
-                    console.log("로컬 데이터 로드 시도");
-                    const localStr = localStorage.getItem(`mergeBob_${user.uid}`);
-                    if (localStr) {
-                        localData = JSON.parse(localStr);
-                        console.log("로컬 데이터 로드 성공:", localData);
-                    } else {
-                        console.log("로컬 데이터 없음");
-                    }
-                } catch(e) {
-                    console.error("로컬 데이터 파싱 실패", e);
+            // 2. 로컬 데이터 로드 시도
+            try {
+                console.log("로컬 데이터 로드 시도");
+                const localStr = localStorage.getItem(`mergeBob_${user.uid}`);
+                if (localStr) {
+                    localData = JSON.parse(localStr);
+                    console.log("로컬 데이터 로드 성공:", localData);
+                } else {
+                    console.log("로컬 데이터 없음");
                 }
+            } catch(e) {
+                console.error("로컬 데이터 파싱 실패", e);
             }
 
-            let finalData = cloudData || localData;
+            // 3. 최신 데이터 판별 (버그 수정: 클라우드가 있어도 로컬이 더 최신이면 로컬 사용)
+            let finalData = null;
+            if (cloudData && localData) {
+                let cTime = cloudData.lastSaveTime || 0;
+                let lTime = localData.lastSaveTime || 0;
+                
+                if (cTime >= lTime) {
+                    console.log("클라우드 데이터가 최신입니다.");
+                    finalData = cloudData;
+                } else {
+                    console.log("로컬 데이터가 더 최신입니다. 클라우드에 덮어씁니다.");
+                    finalData = localData;
+                    // 동기화를 위해 클라우드에 로컬 최신 데이터 즉시 덮어쓰기
+                    game = { ...game, ...finalData };
+                    SaveSystem.saveToCloudImmediate();
+                }
+            } else {
+                finalData = cloudData || localData;
+            }
+
             console.log("최종 데이터:", finalData);
 
             if(finalData) {
