@@ -395,7 +395,8 @@
             { id: "g_rainbow", color: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", price: 10000000000, anim: "anim-rainbow" } 
         ];
         
-        let game = {
+        // 🛡️ 게임 초기 상태 정의 (로그아웃 시 리셋을 위함)
+        const DEFAULT_GAME_STATE = {
             gold: 0, score: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: false, lastSaveTime: Date.now(),
             profileIcon: "👨‍🍳", profileColor: "#f5f5f7", ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"],
             playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: "", unlockedBaseLv: 1,
@@ -403,29 +404,45 @@
             autoSpawnActive: true, autoMergeActive: true
         };
 
-        // 🛡️ 강화된 하이브리드 세이브 시스템 (안정성 최적화)
+        // 깊은 복사로 초기화
+        let game = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
+
+        // 🛡️ 게임 상태 및 UI 완전 초기화 함수
+        function resetGameState() {
+            game = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
+            game.lastSaveTime = Date.now();
+            
+            if (SaveSystem.autoSaveInterval) clearInterval(SaveSystem.autoSaveInterval);
+            if (SaveSystem.saveTimeout) clearTimeout(SaveSystem.saveTimeout);
+            
+            initGrid();
+            
+            document.getElementById('gold-val').innerText = '0';
+            document.getElementById('gps-val').innerText = '0';
+            document.getElementById('sb-nickname').innerText = '로딩 중...';
+            document.getElementById('sb-score').innerText = '🏆 0';
+            document.body.classList.remove('dark-mode');
+            applyProfileUI();
+        }
+
         const SaveSystem = {
             saveTimeout: null,
             autoSaveInterval: null,
-            retryCount: 0, // 재시도 카운트
+            retryCount: 0, 
 
-            // 1. 상태 변환 시 무조건 호출 (즉시 로컬 저장 + 빠른 클라우드 디바운스)
             saveLocal: function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
-                
                 try {
                     const safeGame = { ...game, slots: game.slots.map(s => s === 'LOCK' ? null : s) };
                     localStorage.setItem(`mergeBob_${auth.currentUser.uid}`, JSON.stringify(safeGame));
                     this.debouncedCloudSave();
                 } catch (e) {
                     console.error("로컬 저장 실패", e);
-                    // 로컬 실패 시에도 클라우드 시도
                     this.debouncedCloudSave();
                 }
             },
 
-            // 2. 디바운스 시간 단축 (2초 → 1초)으로 더 자주 저장
             debouncedCloudSave: function() {
                 if (this.saveTimeout) clearTimeout(this.saveTimeout);
                 this.saveTimeout = setTimeout(() => {
@@ -433,7 +450,6 @@
                 }, 1000); 
             },
 
-            // 3. 클라우드 저장 with 재시도 (실패 시 최대 3회 재시도)
             saveToCloud: async function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
@@ -447,17 +463,16 @@
                         nickname: displayName, 
                         lastActive: Date.now() 
                     }, { merge: true });
-                    this.retryCount = 0; // 성공 시 리셋
+                    this.retryCount = 0; 
                 } catch (e) {
                     console.error("클라우드 저장 실패", e);
                     if (this.retryCount < 3) {
                         this.retryCount++;
-                        setTimeout(() => this.saveToCloud(), 2000 * this.retryCount); // 지수 백오프
+                        setTimeout(() => this.saveToCloud(), 2000 * this.retryCount); 
                     }
                 }
             },
 
-            // 4. 즉시 클라우드 저장 (중요 변경 시)
             saveToCloudImmediate: async function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
@@ -473,12 +488,10 @@
                     }, { merge: true });
                 } catch (e) {
                     console.error("즉시 클라우드 저장 실패", e);
-                    // 실패 시 로컬에 백업
                     this.saveLocal();
                 }
             },
 
-            // 5. 유휴 상태 백업 (3초 주기로 단축)
             startAutoSave: function() {
                 if (this.autoSaveInterval) clearInterval(this.autoSaveInterval);
                 this.autoSaveInterval = setInterval(() => {
@@ -578,7 +591,7 @@
 
             if (Math.random() < 0.005) {
                 addItem('LUCKY', emptyIdx, true);
-                SaveSystem.saveLocal(); // 스폰 시 즉시 로컬 저장
+                SaveSystem.saveLocal(); 
                 return;
             }
 
@@ -608,7 +621,7 @@
             else spawnLv = 1;
             
             addItem(spawnLv, emptyIdx, true);
-            SaveSystem.saveLocal(); // 스폰 시 즉시 로컬 저장
+            SaveSystem.saveLocal();
         };
 
         function addItem(lv, idx, animate = false) {
@@ -695,7 +708,7 @@
                 showToast(`럭키! ✨ 깜짝 요리(Lv.${resultLv})가 등장했습니다!`);
                 confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
 
-                SaveSystem.saveLocal(); // 럭키 아이템 오픈 즉시 저장
+                SaveSystem.saveLocal(); 
             }});
         }
 
@@ -722,7 +735,7 @@
             document.removeEventListener('pointercancel', handlePointerUp);
 
             draggingIdx = -1; 
-            let stateChanged = false; // 저장 여부 판별
+            let stateChanged = false; 
 
             const sellZone = document.getElementById('sell-zone');
             sellZone.classList.remove('active'); sellZone.classList.remove('hover');
@@ -790,7 +803,7 @@
             } else { gsap.to(dragTarget, { x: 0, y: 0, duration: 0.2 }); }
             
             if(dragTarget) dragTarget.style.zIndex = 2; dragTarget = null;
-            if(stateChanged) SaveSystem.saveLocal(); // 머지/이동 완료 후 즉시 로컬 저장
+            if(stateChanged) SaveSystem.saveLocal(); 
         }
 
         function updateSidebarStats() {
@@ -1088,7 +1101,7 @@
             game.slots.forEach((lv, i) => { if(lv) addItem(lv, i, false); });
             
             showToast("✨ 보드가 5x5로 확장되었습니다!");
-            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); 
             openModal('upgrade');
         };
 
@@ -1099,7 +1112,7 @@
             else if (type === 'merge') game.autoMergeLv++;
             
             showToast("🤖 로봇이 업그레이드되었습니다!");
-            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); 
             openModal('upgrade');
         };
 
@@ -1121,14 +1134,14 @@
                 if(game.gold < itemObj.price) { showToast("골드가 부족합니다! 💸"); return; }
                 game.gold -= itemObj.price; game.ownedColors.push(itemId); game.profileColor = itemObj.color; 
             }
-            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); 
             applyProfileUI(); openModal('shop'); 
         };
 
         window.equipItem = (type, itemId) => {
             if(type === 'icon') game.profileIcon = itemId;
             else if(type === 'color') game.profileColor = SHOP_COLORS.find(c => c.id === itemId).color;
-            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); 
             applyProfileUI(); openModal('shop');
         };
 
@@ -1212,14 +1225,12 @@
                 }
                 console.log("선택된 파일:", file.name, file.size, file.type);
                 
-                // 파일 타입 검증
                 if (!file.name.endsWith('.json')) {
                     console.log("파일 타입 검증 실패");
                     showToast("JSON 파일만 지원됩니다. ❌");
                     return;
                 }
                 
-                // 파일 크기 제한 (10MB)
                 if (file.size > 10 * 1024 * 1024) {
                     console.log("파일 크기 초과");
                     showToast("파일 크기가 너무 큽니다 (최대 10MB). ❌");
@@ -1233,7 +1244,6 @@
                         const importedData = JSON.parse(event.target.result);
                         console.log("JSON 파싱 성공:", importedData);
                         
-                        // UID 검증
                         if (!importedData.uid) {
                             throw new Error("백업 파일에 사용자 정보가 없습니다");
                         }
@@ -1241,7 +1251,6 @@
                             throw new Error("다른 계정의 백업 파일입니다");
                         }
                         
-                        // 상세한 데이터 검증
                         if (typeof importedData !== 'object' || importedData === null) {
                             throw new Error("데이터가 객체가 아닙니다");
                         }
@@ -1256,7 +1265,6 @@
                         }
                         console.log("데이터 검증 통과");
                         
-                        // 가져오기 전에 현재 상태 자동 백업
                         try {
                             const backupData = { ...game, uid: auth.currentUser.uid };
                             const backupStr = JSON.stringify(backupData, null, 2);
@@ -1272,17 +1280,14 @@
                             console.log("자동 백업 생성됨");
                         } catch (backupError) {
                             console.warn("자동 백업 실패:", backupError);
-                            // 백업 실패해도 진행
                         }
                         
-                        // 데이터 적용 (uid 제외)
                         const { uid, ...cleanData } = importedData;
                         const oldGame = { ...game };
                         game = { ...game, ...cleanData };
                         console.log("데이터 적용됨");
                         
                         try {
-                            // UI 업데이트
                             initGrid();
                             game.slots.forEach((lv, i) => { if(lv && lv !== 'LOCK') addItem(lv, i, false); });
                             if(game.darkMode) document.body.classList.add('dark-mode');
@@ -1290,13 +1295,11 @@
                             applyProfileUI();
                             console.log("UI 업데이트 완료");
                             
-                            // 즉시 저장
                             SaveSystem.saveToCloudImmediate();
                             
                             showToast("데이터가 성공적으로 가져오기되었습니다! 🔄 (자동 백업 생성됨)");
                             closeModal();
                         } catch (uiError) {
-                            // UI 업데이트 실패 시 롤백
                             game = oldGame;
                             console.error("UI 업데이트 실패:", uiError);
                             throw new Error("데이터 적용 중 오류가 발생했습니다");
@@ -1317,7 +1320,6 @@
                 reader.readAsText(file);
             };
             
-            // 파일 입력 초기화 (같은 파일 재선택 가능)
             fileInput.value = '';
             console.log("fileInput 초기화됨");
         };
@@ -1326,14 +1328,13 @@
             const email = auth.currentUser ? auth.currentUser.email : "";
             const input = prompt(`정말로 모든 데이터를 초기화하시겠습니까? 복구할 수 없습니다!\n\n보안을 위해 계정 이메일을 입력해주세요: ${email}\n\n초기화하려면 정확히 이메일을 입력하세요.`);
             if(input === email) {
-                game = { 
-                    gold: 0, score: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: game.darkMode, 
-                    lastSaveTime: Date.now(), profileIcon: "👨‍🍳", profileColor: "#f5f5f7", 
-                    ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"], playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: game.customNickname, unlockedBaseLv: 1, is5x5Unlocked: false, upgradesUnlocked: false, autoSpawnLv: 0, autoMergeLv: 0, autoSpawnActive: true, autoMergeActive: true
-                };
+                // 🛡️ 상수 데이터를 사용하여 완전 초기화
+                game = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
+                game.customNickname = ""; // 초기화 시 닉네임도 비우기
+                
                 if (auth.currentUser) {
                     localStorage.removeItem(`mergeBob_${auth.currentUser.uid}`);
-                    SaveSystem.saveToCloudImmediate(); // 클라우드도 초기화
+                    SaveSystem.saveToCloudImmediate(); 
                 }
                 initGrid(); SaveSystem.saveLocal(); applyProfileUI(); closeModal(); showToast("데이터가 완전히 초기화되었습니다.");
             } else if (input !== null) { showToast("이메일이 일치하지 않습니다. 초기화가 취소되었습니다."); }
@@ -1423,7 +1424,7 @@
                                 gsap.to(fx, { scale: 1.2, opacity: 0, duration: 0.3, onComplete: () => fx.remove() });
                                 
                                 isRobotMerging = false;
-                                SaveSystem.saveLocal(); // 로봇 머지 완료 시 저장
+                                SaveSystem.saveLocal(); 
                             }
                         });
 
@@ -1445,7 +1446,6 @@
                 return;
             }
 
-            // 오프라인이거나 백그라운드 전환으로 인해 시간(dt)이 과도하게 튀었을 경우 로봇 일시정지 (폭주 방지)
             if (dt > 1000) {
                 requestAnimationFrame(robotLoop);
                 return;
@@ -1470,6 +1470,12 @@
         }
 
         function gameLoop() {
+            // 🛡️ 로그인 되어있지 않으면 점수를 올리지 않고 대기
+            if(!auth.currentUser) {
+                setTimeout(gameLoop, 1000);
+                return;
+            }
+
             let income = 0;
             game.slots.forEach(lv => { if(lv && lv !== 'LUCKY' && lv !== 'LOCK') income += Math.pow(2, lv) - 1; });
             game.gold += income; game.score += income; game.playTime += 1; 
@@ -1492,13 +1498,11 @@
             setTimeout(gameLoop, 1000);
         }
 
-        // 🛡️ 디바이스 간 동기화 강화: 클라우드 우선 로드 (로컬은 오프라인 백업) -> 버그 수정: 항상 최신 저장시간 비교
         async function loadGameFromDB(user) {
             console.log("loadGameFromDB 시작, user:", user.uid);
             let cloudData = null;
             let localData = null;
 
-            // 1. 클라우드 데이터 로드 시도
             try {
                 console.log("클라우드 데이터 로드 시도");
                 const snap = await getDoc(doc(db, "users", user.uid));
@@ -1512,7 +1516,6 @@
                 console.error("클라우드 로드 실패", e);
             }
 
-            // 2. 로컬 데이터 로드 시도
             try {
                 console.log("로컬 데이터 로드 시도");
                 const localStr = localStorage.getItem(`mergeBob_${user.uid}`);
@@ -1526,7 +1529,6 @@
                 console.error("로컬 데이터 파싱 실패", e);
             }
 
-            // 3. 최신 데이터 판별 (버그 수정: 클라우드가 있어도 로컬이 더 최신이면 로컬 사용)
             let finalData = null;
             if (cloudData && localData) {
                 let cTime = cloudData.lastSaveTime || 0;
@@ -1538,7 +1540,6 @@
                 } else {
                     console.log("로컬 데이터가 더 최신입니다. 클라우드에 덮어씁니다.");
                     finalData = localData;
-                    // 동기화를 위해 클라우드에 로컬 최신 데이터 즉시 덮어쓰기
                     game = { ...game, ...finalData };
                     SaveSystem.saveToCloudImmediate();
                 }
@@ -1591,14 +1592,13 @@
                     }
                 }
             } else {
-                SaveSystem.saveLocal(); // 완전 신규 유저일 경우
+                SaveSystem.saveLocal(); 
             }
 
             applyProfileUI();
             document.getElementById('loading-screen').style.opacity = '0';
             setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
 
-            // 오토 세이브 가동
             SaveSystem.startAutoSave();
         }
 
@@ -1624,17 +1624,18 @@
                 showToast(`${user.displayName} 셰프님 환영합니다!`);
                 loadGameFromDB(user);
             } else {
+                // 🛡️ 유저가 없을 때 완벽하게 초기화
+                resetGameState();
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('login-screen').style.opacity = '1';
                 document.getElementById('loading-screen').style.display = 'none';
             }
         });
 
-        // 🛡️ 강제 종료 / 새로고침 대비 (즉시 저장)
         window.addEventListener("beforeunload", () => { 
             if(auth.currentUser) {
                 SaveSystem.saveLocal(); 
-                SaveSystem.saveToCloudImmediate(); // 최후의 즉시 저장 시도
+                SaveSystem.saveToCloudImmediate(); 
             }
         });
 
