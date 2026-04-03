@@ -403,35 +403,37 @@
             autoSpawnActive: true, autoMergeActive: true
         };
 
-        // 🛡️ [안전장치 핵심] 하이브리드 세이브 시스템 (로컬 즉시 저장 + 파이어베이스 디바운스/지연 저장)
+        // 🛡️ 강화된 하이브리드 세이브 시스템 (안정성 최적화)
         const SaveSystem = {
             saveTimeout: null,
             autoSaveInterval: null,
+            retryCount: 0, // 재시도 카운트
 
-            // 1. 상태 변환 시 무조건 호출 (즉시 로컬 저장 후 클라우드 디바운스 예약)
+            // 1. 상태 변환 시 무조건 호출 (즉시 로컬 저장 + 빠른 클라우드 디바운스)
             saveLocal: function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
                 
                 try {
-                    // LOCK 버그 방지 찌꺼기 정화
                     const safeGame = { ...game, slots: game.slots.map(s => s === 'LOCK' ? null : s) };
                     localStorage.setItem(`mergeBob_${auth.currentUser.uid}`, JSON.stringify(safeGame));
                     this.debouncedCloudSave();
                 } catch (e) {
                     console.error("로컬 저장 실패", e);
+                    // 로컬 실패 시에도 클라우드 시도
+                    this.debouncedCloudSave();
                 }
             },
 
-            // 2. 여러 번 저장 요청이 와도 마지막 2초 뒤에 한 번만 파이어베이스에 쏨 (서버비 절약 & 충돌 방지)
+            // 2. 디바운스 시간 단축 (2초 → 1초)으로 더 자주 저장
             debouncedCloudSave: function() {
                 if (this.saveTimeout) clearTimeout(this.saveTimeout);
                 this.saveTimeout = setTimeout(() => {
                     this.saveToCloud();
-                }, 2000); 
+                }, 1000); 
             },
 
-            // 3. 실제 파이어베이스 저장 로직
+            // 3. 클라우드 저장 with 재시도 (실패 시 최대 3회 재시도)
             saveToCloud: async function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
@@ -445,17 +447,43 @@
                         nickname: displayName, 
                         lastActive: Date.now() 
                     }, { merge: true });
+                    this.retryCount = 0; // 성공 시 리셋
                 } catch (e) {
                     console.error("클라우드 저장 실패", e);
+                    if (this.retryCount < 3) {
+                        this.retryCount++;
+                        setTimeout(() => this.saveToCloud(), 2000 * this.retryCount); // 지수 백오프
+                    }
                 }
             },
 
-            // 4. 유휴 상태(초당 골드 획득 등)를 위한 5초 주기 강제 백업
+            // 4. 즉시 클라우드 저장 (중요 변경 시)
+            saveToCloudImmediate: async function() {
+                if(!auth.currentUser) return;
+                game.lastSaveTime = Date.now();
+                let displayName = game.customNickname || auth.currentUser.displayName || "셰프";
+                const safeSlots = game.slots.map(s => s === 'LOCK' ? null : s);
+                
+                try {
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
+                        ...game, 
+                        slots: safeSlots, 
+                        nickname: displayName, 
+                        lastActive: Date.now() 
+                    }, { merge: true });
+                } catch (e) {
+                    console.error("즉시 클라우드 저장 실패", e);
+                    // 실패 시 로컬에 백업
+                    this.saveLocal();
+                }
+            },
+
+            // 5. 유휴 상태 백업 (3초 주기로 단축)
             startAutoSave: function() {
                 if (this.autoSaveInterval) clearInterval(this.autoSaveInterval);
                 this.autoSaveInterval = setInterval(() => {
                     this.saveLocal(); 
-                }, 5000);
+                }, 3000);
             }
         };
 
@@ -1012,6 +1040,15 @@
                         <span>다크 모드</span>
                         <label class="switch"><input type="checkbox" ${game.darkMode ? 'checked' : ''} onchange="toggleDarkMode()"><span class="slider"></span></label>
                     </div>
+                    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                        <span>데이터 백업</span>
+                        <div style="display: flex; width: 100%; gap: 10px;">
+                            <button style="flex: 1; padding: 10px; font-size: 14px; background: var(--blue); color: white;" onclick="exportData()">📤 내보내기</button>
+                            <input type="file" id="import-file" accept=".json" style="display: none;">
+                            <button style="flex: 1; padding: 10px; font-size: 14px; background: var(--online); color: white;" onclick="importData(); setTimeout(() => document.getElementById('import-file').click(), 100)">📥 가져오기</button>
+                        </div>
+                        <div style="font-size: 12px; color: var(--sub-text);">JSON 파일로 데이터를 백업/복원할 수 있습니다.</div>
+                    </div>
                     <div style="display:flex; gap:10px; margin-top:30px;">
                         <button style="background: var(--line); color: var(--main-text);" onclick="logout()">로그아웃</button>
                         <button class="btn-danger" onclick="resetData()">데이터 초기화</button>
@@ -1051,7 +1088,8 @@
             game.slots.forEach((lv, i) => { if(lv) addItem(lv, i, false); });
             
             showToast("✨ 보드가 5x5로 확장되었습니다!");
-            SaveSystem.saveLocal(); openModal('upgrade');
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            openModal('upgrade');
         };
 
         window.upgradeRobot = (type, cost) => {
@@ -1061,7 +1099,8 @@
             else if (type === 'merge') game.autoMergeLv++;
             
             showToast("🤖 로봇이 업그레이드되었습니다!");
-            SaveSystem.saveLocal(); openModal('upgrade');
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            openModal('upgrade');
         };
 
         window.changeNickname = () => {
@@ -1082,13 +1121,15 @@
                 if(game.gold < itemObj.price) { showToast("골드가 부족합니다! 💸"); return; }
                 game.gold -= itemObj.price; game.ownedColors.push(itemId); game.profileColor = itemObj.color; 
             }
-            SaveSystem.saveLocal(); applyProfileUI(); openModal('shop'); 
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            applyProfileUI(); openModal('shop'); 
         };
 
         window.equipItem = (type, itemId) => {
             if(type === 'icon') game.profileIcon = itemId;
             else if(type === 'color') game.profileColor = SHOP_COLORS.find(c => c.id === itemId).color;
-            SaveSystem.saveLocal(); applyProfileUI(); openModal('shop');
+            SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); // 즉시 클라우드 저장
+            applyProfileUI(); openModal('shop');
         };
 
         function applyProfileUI() {
@@ -1115,12 +1156,165 @@
             setTimeout(() => { document.getElementById('modal-overlay').style.display = 'none'; }, 400);
         };
 
-        window.toggleDarkMode = () => { game.darkMode = !game.darkMode; document.body.classList.toggle('dark-mode'); SaveSystem.saveLocal(); };
-        window.logout = () => { signOut(auth).then(() => { window.location.reload(); }); };
+        window.exportData = () => {
+            try {
+                if (!auth.currentUser) {
+                    showToast("로그인이 필요합니다. ❌");
+                    return;
+                }
+                
+                const dataWithUid = { ...game, uid: auth.currentUser.uid };
+                const dataStr = JSON.stringify(dataWithUid, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `mergebob_backup_${auth.currentUser.uid}_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showToast("데이터가 내보내기되었습니다! 💾");
+            } catch (error) {
+                console.error("Export error:", error);
+                showToast("내보내기 실패 ❌");
+            }
+        };
+
+        window.importData = () => {
+            console.log("importData 함수 호출됨");
+            const fileInput = document.getElementById('import-file');
+            if (!fileInput) {
+                console.error("import-file 요소를 찾을 수 없음");
+                showToast("파일 입력 요소를 찾을 수 없습니다. ❌");
+                return;
+            }
+            console.log("fileInput 요소 찾음:", fileInput);
+            
+            fileInput.onchange = (e) => {
+                console.log("onchange 이벤트 발생");
+                const file = e.target.files[0];
+                if (!file) {
+                    console.log("파일 선택 안됨");
+                    showToast("파일을 선택해주세요. ❌");
+                    return;
+                }
+                console.log("선택된 파일:", file.name, file.size, file.type);
+                
+                // 파일 타입 검증
+                if (!file.name.endsWith('.json')) {
+                    console.log("파일 타입 검증 실패");
+                    showToast("JSON 파일만 지원됩니다. ❌");
+                    return;
+                }
+                
+                // 파일 크기 제한 (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    console.log("파일 크기 초과");
+                    showToast("파일 크기가 너무 큽니다 (최대 10MB). ❌");
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    console.log("FileReader onload 호출됨");
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        console.log("JSON 파싱 성공:", importedData);
+                        
+                        // UID 검증
+                        if (!importedData.uid) {
+                            throw new Error("백업 파일에 사용자 정보가 없습니다");
+                        }
+                        if (importedData.uid !== auth.currentUser.uid) {
+                            throw new Error("다른 계정의 백업 파일입니다");
+                        }
+                        
+                        // 상세한 데이터 검증
+                        if (typeof importedData !== 'object' || importedData === null) {
+                            throw new Error("데이터가 객체가 아닙니다");
+                        }
+                        if (typeof importedData.gold !== 'number' || importedData.gold < 0) {
+                            throw new Error("gold 값이 유효하지 않습니다");
+                        }
+                        if (!Array.isArray(importedData.slots)) {
+                            throw new Error("slots가 배열이 아닙니다");
+                        }
+                        if (typeof importedData.score !== 'number' || importedData.score < 0) {
+                            throw new Error("score 값이 유효하지 않습니다");
+                        }
+                        console.log("데이터 검증 통과");
+                        
+                        // 가져오기 전에 현재 상태 자동 백업
+                        try {
+                            const backupData = { ...game, uid: auth.currentUser.uid };
+                            const backupStr = JSON.stringify(backupData, null, 2);
+                            const backupBlob = new Blob([backupStr], {type: 'application/json'});
+                            const backupUrl = URL.createObjectURL(backupBlob);
+                            const backupLink = document.createElement('a');
+                            backupLink.href = backupUrl;
+                            backupLink.download = `mergebob_auto_backup_${auth.currentUser.uid}_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                            document.body.appendChild(backupLink);
+                            backupLink.click();
+                            document.body.removeChild(backupLink);
+                            URL.revokeObjectURL(backupUrl);
+                            console.log("자동 백업 생성됨");
+                        } catch (backupError) {
+                            console.warn("자동 백업 실패:", backupError);
+                            // 백업 실패해도 진행
+                        }
+                        
+                        // 데이터 적용 (uid 제외)
+                        const { uid, ...cleanData } = importedData;
+                        const oldGame = { ...game };
+                        game = { ...game, ...cleanData };
+                        console.log("데이터 적용됨");
+                        
+                        try {
+                            // UI 업데이트
+                            initGrid();
+                            game.slots.forEach((lv, i) => { if(lv && lv !== 'LOCK') addItem(lv, i, false); });
+                            if(game.darkMode) document.body.classList.add('dark-mode');
+                            else document.body.classList.remove('dark-mode');
+                            applyProfileUI();
+                            console.log("UI 업데이트 완료");
+                            
+                            // 즉시 저장
+                            SaveSystem.saveToCloudImmediate();
+                            
+                            showToast("데이터가 성공적으로 가져오기되었습니다! 🔄 (자동 백업 생성됨)");
+                            closeModal();
+                        } catch (uiError) {
+                            // UI 업데이트 실패 시 롤백
+                            game = oldGame;
+                            console.error("UI 업데이트 실패:", uiError);
+                            throw new Error("데이터 적용 중 오류가 발생했습니다");
+                        }
+                        
+                    } catch (error) {
+                        console.error("Import error:", error);
+                        showToast(`가져오기 실패: ${error.message} ❌`);
+                    }
+                };
+                
+                reader.onerror = () => {
+                    console.error("FileReader error");
+                    showToast("파일 읽기 실패 ❌");
+                };
+                
+                console.log("FileReader.readAsText 호출");
+                reader.readAsText(file);
+            };
+            
+            // 파일 입력 초기화 (같은 파일 재선택 가능)
+            fileInput.value = '';
+            console.log("fileInput 초기화됨");
+        };
 
         window.resetData = () => {
-            const input = prompt("정말로 모든 데이터를 초기화하시겠습니까? 복구할 수 없습니다!\n초기화하려면 '확인'을 정확히 입력해주세요.");
-            if(input === '확인') {
+            const email = auth.currentUser ? auth.currentUser.email : "";
+            const input = prompt(`정말로 모든 데이터를 초기화하시겠습니까? 복구할 수 없습니다!\n\n보안을 위해 계정 이메일을 입력해주세요: ${email}\n\n초기화하려면 정확히 이메일을 입력하세요.`);
+            if(input === email) {
                 game = { 
                     gold: 0, score: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: game.darkMode, 
                     lastSaveTime: Date.now(), profileIcon: "👨‍🍳", profileColor: "#f5f5f7", 
@@ -1128,9 +1322,10 @@
                 };
                 if (auth.currentUser) {
                     localStorage.removeItem(`mergeBob_${auth.currentUser.uid}`);
+                    SaveSystem.saveToCloudImmediate(); // 클라우드도 초기화
                 }
                 initGrid(); SaveSystem.saveLocal(); applyProfileUI(); closeModal(); showToast("데이터가 완전히 초기화되었습니다.");
-            } else if (input !== null) { showToast("초기화가 취소되었습니다."); }
+            } else if (input !== null) { showToast("이메일이 일치하지 않습니다. 초기화가 취소되었습니다."); }
         };
 
         function setupBottomSheet() {
@@ -1286,32 +1481,44 @@
             setTimeout(gameLoop, 1000);
         }
 
-        // 🛡️ 충돌 방지 로드 (서버 vs 로컬 중 최신 데이터 불러오기)
+        // 🛡️ 디바이스 간 동기화 강화: 클라우드 우선 로드 (로컬은 오프라인 백업)
         async function loadGameFromDB(user) {
+            console.log("loadGameFromDB 시작, user:", user.uid);
             let cloudData = null;
             let localData = null;
 
-            // 1. 로컬 데이터 탐색
+            // 1. 클라우드 데이터 우선 탐색 (디바이스 간 동기화 보장)
             try {
-                const localStr = localStorage.getItem(`mergeBob_${user.uid}`);
-                if (localStr) localData = JSON.parse(localStr);
-            } catch(e) {}
-
-            // 2. 파이어베이스 클라우드 데이터 탐색
-            try {
+                console.log("클라우드 데이터 로드 시도");
                 const snap = await getDoc(doc(db, "users", user.uid));
-                if(snap.exists()) cloudData = snap.data();
+                if(snap.exists()) {
+                    cloudData = snap.data();
+                    console.log("클라우드 데이터 로드 성공:", cloudData);
+                } else {
+                    console.log("클라우드 데이터 없음");
+                }
             } catch(e) {
                 console.error("클라우드 로드 실패", e);
             }
 
-            // 3. 최신 데이터 판별 (통신이 끊겼어도 로컬이 최신이면 로컬 사용)
-            let finalData = null;
-            if (cloudData && localData) {
-                finalData = (cloudData.lastSaveTime > localData.lastSaveTime) ? cloudData : localData;
-            } else {
-                finalData = cloudData || localData;
+            // 2. 클라우드가 없으면 로컬 백업 사용 (오프라인 지원)
+            if (!cloudData) {
+                try {
+                    console.log("로컬 데이터 로드 시도");
+                    const localStr = localStorage.getItem(`mergeBob_${user.uid}`);
+                    if (localStr) {
+                        localData = JSON.parse(localStr);
+                        console.log("로컬 데이터 로드 성공:", localData);
+                    } else {
+                        console.log("로컬 데이터 없음");
+                    }
+                } catch(e) {
+                    console.error("로컬 데이터 파싱 실패", e);
+                }
             }
+
+            let finalData = cloudData || localData;
+            console.log("최종 데이터:", finalData);
 
             if(finalData) {
                 game = { ...game, ...finalData }; 
@@ -1369,6 +1576,16 @@
 
         window.loginWithGoogle = () => { signInWithPopup(auth, new GoogleAuthProvider()).catch(() => showToast("로그인 실패")); };
 
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+                showToast("로그아웃되었습니다.");
+            } catch (error) {
+                console.error("로그아웃 실패:", error);
+                showToast("로그아웃 실패");
+            }
+        };
+
         onAuthStateChanged(auth, (user) => {
             if(user) {
                 document.getElementById('login-screen').style.opacity = '0';
@@ -1385,11 +1602,11 @@
             }
         });
 
-        // 🛡️ 강제 종료 / 새로고침 대비
+        // 🛡️ 강제 종료 / 새로고침 대비 (즉시 저장)
         window.addEventListener("beforeunload", () => { 
             if(auth.currentUser) {
                 SaveSystem.saveLocal(); 
-                SaveSystem.saveToCloud(); // 최후의 통신 시도
+                SaveSystem.saveToCloudImmediate(); // 최후의 즉시 저장 시도
             }
         });
 
