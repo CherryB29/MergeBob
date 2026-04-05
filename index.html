@@ -13,7 +13,7 @@
             --card-bg: #ffffff; --body-bg: #f5f5f7; --modal-overlay: rgba(0, 0, 0, 0.4); --blue: #007aff;
             --danger: #ff3b30; --line: rgba(0,0,0,0.08); --gold: #ffab00; --shop-card: #ffffff;
             --online: #34c759; --robot: #af52de;
-            --icon-scale: 1; /* 아이콘 크기 조절용 변수 */
+            --icon-scale: 1; 
         }
         body.dark-mode {
             --main-text: #f5f5f7; --sub-text: #a1a1a6;
@@ -32,7 +32,6 @@
             padding-top: 70px; 
         }
 
-        /* 모바일 확대 방지 및 연타 허용 */
         button, .slot, .nav-item, .shop-btn, .shop-card, #menu-trigger, #prob-btn {
             touch-action: manipulation;
         }
@@ -189,16 +188,16 @@
         #sell-zone.active { bottom: 0; pointer-events: auto; }
         #sell-zone.hover { background: #d32f2f; }
 
-        #offline-popup, #unlock-popup, #robot-popup {
+        #offline-popup, #unlock-popup, #robot-popup, #tshop-popup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 4000;
             display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.4s ease;
         }
-        #offline-popup.show, #unlock-popup.show, #robot-popup.show { opacity: 1; }
+        #offline-popup.show, #unlock-popup.show, #robot-popup.show, #tshop-popup.show { opacity: 1; }
         .offline-content {
             background: var(--card-bg); padding: 35px 25px; border-radius: 35px; text-align: center; width: 85%; max-width: 340px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform: translateY(30px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        #offline-popup.show .offline-content, #unlock-popup.show .offline-content, #robot-popup.show .offline-content { transform: translateY(0) scale(1); }
+        #offline-popup.show .offline-content, #unlock-popup.show .offline-content, #robot-popup.show .offline-content, #tshop-popup.show .offline-content { transform: translateY(0) scale(1); }
         .offline-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; color: var(--main-text); }
         .offline-desc { font-size: 14px; color: var(--sub-text); line-height: 1.5; font-weight: 600; }
         .offline-gold { font-size: 42px; font-weight: 800; color: var(--gold); margin: 25px 0; text-shadow: 0 4px 15px rgba(255, 171, 0, 0.2); }
@@ -209,25 +208,35 @@
         .online-dot { width: 8px; height: 8px; background: var(--online); border-radius: 50%; box-shadow: 0 0 5px var(--online); display: inline-block; animation: flashGlow 1.5s infinite; }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes superSpin { 100% { transform: rotate(360deg) scale(1.1); filter: hue-rotate(360deg); } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-6px) rotate(5deg); } }
         @keyframes pulseBg { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes fastPulse { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.1); filter: brightness(1.5) drop-shadow(0 0 20px rgba(255,0,255,0.8)); } }
         @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         @keyframes flashGlow { 0%, 100% { filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,255,0.2)); } 50% { filter: brightness(1.5) drop-shadow(0 0 15px rgba(255,255,255,0.6)); } }
         @keyframes rainbowSpin { 100% { transform: rotate(360deg); filter: hue-rotate(360deg); } }
+        @keyframes galaxyMove { 0% { background-position: 0% 0%; filter: hue-rotate(0deg); } 50% { background-position: 100% 100%; filter: hue-rotate(180deg); } 100% { background-position: 0% 0%; filter: hue-rotate(360deg); } }
+        @keyframes textRainbow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         .anim-spin { animation: spin 4s linear infinite; display: inline-block; }
+        .anim-super-spin { animation: superSpin 1.5s ease-in-out infinite alternate; display: inline-block; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
         .anim-bounce { animation: bounce 1s ease-in-out infinite; display: inline-block; }
         .anim-float { animation: float 2s ease-in-out infinite; display: inline-block; }
         .anim-pulse { animation: pulseBg 1.5s ease-in-out infinite; }
+        .anim-pulse-fast { animation: fastPulse 0.5s ease-in-out infinite; }
         .anim-bg-move { background-size: 200% 200% !important; animation: gradientMove 3s ease infinite; }
         .anim-flash { animation: flashGlow 0.5s ease-in-out infinite; }
         .anim-rainbow { animation: rainbowSpin 3s linear infinite; }
+        .anim-galaxy { background-size: 400% 400% !important; animation: galaxyMove 5s ease infinite; }
+        .anim-super-rainbow { animation: rainbowSpin 1s linear infinite; box-shadow: 0 0 30px rgba(255,0,0,0.5); }
 
         #login-screen, #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--body-bg); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--main-text); transition: opacity 0.5s;
         }
         .google-btn { background: white; border: 1px solid #ddd; padding: 15px 30px; border-radius: 30px; font-size: 16px; font-weight: 700; color: #3c4043; display: flex; align-items: center; gap: 12px; cursor: pointer; width: auto; }
+        
+        .admin-input { padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--body-bg); color: var(--main-text); width: 100%; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -273,6 +282,15 @@
             <button class="offline-btn robot-btn" onclick="closePopup('robot-popup')" style="margin-top: 25px;">멋지네요!</button>
         </div>
     </div>
+    
+    <div id="tshop-popup">
+        <div class="offline-content">
+            <div style="font-size: 55px; margin-bottom: 10px;" class="anim-super-spin">💎</div>
+            <div class="offline-title" style="background: linear-gradient(to right, #ff00cc, #333399); -webkit-background-clip: text; color: transparent;">초월 상점 오픈!</div>
+            <div class="offline-desc" style="margin-top: 15px;">놀랍습니다! 자산이 <b>1T</b>를 돌파했습니다!<br>이제 상점에서 <b>닉네임 이펙트와<br>초월 꾸미기</b>를 구매할 수 있습니다.</div>
+            <button class="offline-btn" onclick="closePopup('tshop-popup')" style="margin-top: 25px; background: #000; color: #fff;">확인하러 가기</button>
+        </div>
+    </div>
 
     <div id="toast">알림</div>
 
@@ -309,6 +327,11 @@
         <div class="nav-item" onclick="openModal('settings'); toggleSidebar();">
             <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             설정
+        </div>
+        
+        <div class="nav-item" id="nav-admin" style="display:none; color: var(--danger);" onclick="openModal('admin'); toggleSidebar();">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            관리자 패널
         </div>
 
         <div class="help-box">
@@ -370,14 +393,27 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const ITEM_DATA = ["🌾", "🥚", "🥛", "🧀", "🍞", "🥐", "🥖", "🥞", "🧇", "🍟", "🥗", "🥪", "🌮", "🌯", "🍜", "🍝", "🍛", "🍣", "🍤", "🍔", "🍕", "🍗", "🍖", "🥩", "🍲", "🦞", "🍱", "🍮", "🍩", "🍰", "🎂"];
+        // 90단계까지 확장된 아이템 배열 (초기 음식 + 다양한 이모지)
+        const ITEM_DATA = [
+            "🌾", "🥚", "🥛", "🧀", "🍞", "🥐", "🥖", "🥞", "🧇", "🍟", // 1-10
+            "🥗", "🥪", "🌮", "🌯", "🍜", "🍝", "🍛", "🍣", "🍤", "🍔", // 11-20
+            "🍕", "🍗", "🍖", "🥩", "🍲", "🦞", "🍱", "🍮", "🍩", "🍰", // 21-30
+            "🎂", "☕", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", // 31-40
+            "🍄", "🌰", "🥜", "🍯", "🍫", "🍬", "🍭", "🍡", "🥟", "🥠", // 41-50
+            "🥡", "🥢", "🥣", "🥤", "🧋", "🧉", "🧊", "🏺", "🔮", "🧿", // 51-60
+            "🪬", "💎", "💍", "👑", "🧸", "🎁", "🎈", "🎏", "🎀", "🪄", // 61-70
+            "🧩", "🪀", "🪁", "🪙", "💵", "💶", "💷", "💸", "💳", "🧾", // 71-80
+            "💹", "📈", "📉", "📊", "📋", "📅", "📆", "📇", "📁", "📂"  // 81-90
+        ];
         
         const SHOP_ICONS = [
             { icon: "👨‍🍳", price: 0, anim: "" }, { icon: "🐸", price: 100000, anim: "" }, { icon: "🐶", price: 100000, anim: "" },
             { icon: "💩", price: 500000, anim: "anim-bounce" }, { icon: "🤡", price: 500000, anim: "" }, { icon: "👻", price: 500000, anim: "anim-float" },
             { icon: "👽", price: 2000000, anim: "anim-float" }, { icon: "🤖", price: 2000000, anim: "" }, { icon: "🦄", price: 10000000, anim: "anim-bounce" },
             { icon: "🚁", price: 50000000, anim: "anim-spin" }, { icon: "🚀", price: 200000000, anim: "anim-float" }, { icon: "🌍", price: 200000000, anim: "anim-spin" },
-            { icon: "💸", price: 500000000, anim: "anim-bounce" }, { icon: "💎", price: 2000000000, anim: "anim-pulse" }, { icon: "👑", price: 10000000000, anim: "anim-float" } 
+            { icon: "💸", price: 500000000, anim: "anim-bounce" }, { icon: "💎", price: 2000000000, anim: "anim-pulse" }, { icon: "👑", price: 10000000000, anim: "anim-float" },
+            // T 단위(초고가) 추가 아이콘
+            { icon: "🌌", price: 1000000000000, anim: "anim-super-spin" }, { icon: "🎆", price: 10000000000000, anim: "anim-pulse-fast" }
         ];
 
         const SHOP_COLORS = [
@@ -393,22 +429,30 @@
             { id: "g_rain", color: "linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb)", price: 500000000, anim: "anim-bg-move" }, 
             { id: "g_blackhole", color: "radial-gradient(circle, #000000, #434343)", price: 1000000000, anim: "anim-spin" },
             { id: "g_flash", color: "radial-gradient(circle, #fff, #ff00ff)", price: 2000000000, anim: "anim-flash" }, 
-            { id: "g_rainbow", color: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", price: 10000000000, anim: "anim-rainbow" } 
+            { id: "g_rainbow", color: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)", price: 10000000000, anim: "anim-rainbow" },
+            // T 단위(초고가) 배경 추가
+            { id: "g_supernova", color: "radial-gradient(circle, #ff00cc, #333399, #000000)", price: 5000000000000, anim: "anim-galaxy" },
+            { id: "g_god", color: "conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)", price: 50000000000000, anim: "anim-super-rainbow" }
+        ];
+
+        const NICKNAME_EFFECTS = [
+            { id: "n_def", name: "기본", style: "", price: 0 },
+            { id: "n_gold", name: "황금빛", style: "color: gold; text-shadow: 0 0 5px gold;", price: 1000000000000 },
+            { id: "n_fire", name: "불꽃", style: "background: linear-gradient(to right, red, orange); -webkit-background-clip: text; color: transparent;", price: 5000000000000 },
+            { id: "n_hacker", name: "매트릭스", style: "color: lime; text-shadow: 0 0 5px lime; font-family: monospace;", price: 10000000000000 },
+            { id: "n_god", name: "초월(무지개)", style: "background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); background-size: 200% auto; -webkit-background-clip: text; color: transparent; animation: textRainbow 2s linear infinite;", price: 50000000000000 }
         ];
         
-        // 🛡️ 게임 초기 상태 정의 (로그아웃 시 리셋을 위함)
         const DEFAULT_GAME_STATE = {
             gold: 0, score: 0, slots: Array(16).fill(null), maxLv: 1, darkMode: false, lastSaveTime: Date.now(),
-            profileIcon: "👨‍🍳", profileColor: "#f5f5f7", ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"],
+            profileIcon: "👨‍🍳", profileColor: "#f5f5f7", ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"], nicknameEffect: "n_def", ownedNicknames: ["n_def"],
             playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: "", unlockedBaseLv: 1,
-            is5x5Unlocked: false, upgradesUnlocked: false, autoSpawnLv: 0, autoMergeLv: 0,
+            is5x5Unlocked: false, upgradesUnlocked: false, unlockedTShop: false, adminMode: false, autoSpawnLv: 0, autoMergeLv: 0,
             autoSpawnActive: true, autoMergeActive: true, iconSize: 100
         };
 
-        // 깊은 복사로 초기화
         let game = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
 
-        // 🛡️ 게임 상태 및 UI 완전 초기화 함수
         function resetGameState() {
             game = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
             game.lastSaveTime = Date.now();
@@ -428,10 +472,7 @@
         }
 
         const SaveSystem = {
-            saveTimeout: null,
-            autoSaveInterval: null,
-            retryCount: 0, 
-
+            saveTimeout: null, autoSaveInterval: null, retryCount: 0, 
             saveLocal: function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
@@ -439,83 +480,55 @@
                     const safeGame = { ...game, slots: game.slots.map(s => s === 'LOCK' ? null : s) };
                     localStorage.setItem(`mergeBob_${auth.currentUser.uid}`, JSON.stringify(safeGame));
                     this.debouncedCloudSave();
-                } catch (e) {
-                    console.error("로컬 저장 실패", e);
-                    this.debouncedCloudSave();
-                }
+                } catch (e) { console.error("로컬 저장 실패", e); this.debouncedCloudSave(); }
             },
-
             debouncedCloudSave: function() {
                 if (this.saveTimeout) clearTimeout(this.saveTimeout);
-                this.saveTimeout = setTimeout(() => {
-                    this.saveToCloud();
-                }, 1000); 
+                this.saveTimeout = setTimeout(() => { this.saveToCloud(); }, 1000); 
             },
-
             saveToCloud: async function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
                 let displayName = game.customNickname || auth.currentUser.displayName || "셰프";
                 const safeSlots = game.slots.map(s => s === 'LOCK' ? null : s);
-                
                 try {
-                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                        ...game, 
-                        slots: safeSlots, 
-                        nickname: displayName, 
-                        lastActive: Date.now() 
-                    }, { merge: true });
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, slots: safeSlots, nickname: displayName, lastActive: Date.now() }, { merge: true });
                     this.retryCount = 0; 
                 } catch (e) {
                     console.error("클라우드 저장 실패", e);
-                    if (this.retryCount < 3) {
-                        this.retryCount++;
-                        setTimeout(() => this.saveToCloud(), 2000 * this.retryCount); 
-                    }
+                    if (this.retryCount < 3) { this.retryCount++; setTimeout(() => this.saveToCloud(), 2000 * this.retryCount); }
                 }
             },
-
             saveToCloudImmediate: async function() {
                 if(!auth.currentUser) return;
                 game.lastSaveTime = Date.now();
                 let displayName = game.customNickname || auth.currentUser.displayName || "셰프";
                 const safeSlots = game.slots.map(s => s === 'LOCK' ? null : s);
-                
                 try {
-                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                        ...game, 
-                        slots: safeSlots, 
-                        nickname: displayName, 
-                        lastActive: Date.now() 
-                    }, { merge: true });
-                } catch (e) {
-                    console.error("즉시 클라우드 저장 실패", e);
-                    this.saveLocal();
-                }
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { ...game, slots: safeSlots, nickname: displayName, lastActive: Date.now() }, { merge: true });
+                } catch (e) { console.error("즉시 클라우드 저장 실패", e); this.saveLocal(); }
             },
-
             startAutoSave: function() {
                 if (this.autoSaveInterval) clearInterval(this.autoSaveInterval);
-                this.autoSaveInterval = setInterval(() => {
-                    this.saveLocal(); 
-                }, 12000); // 업데이트 잦음 방지: 3초 -> 12초 변경
+                this.autoSaveInterval = setInterval(() => { this.saveLocal(); }, 12000); 
             }
         };
 
-        let autoSpawnTimer = 0;
-        let autoMergeTimer = 0;
-        let isRobotMerging = false; 
-        let draggingIdx = -1;       
-        const SELL_THRESHOLD = 60; 
+        let autoSpawnTimer = 0; let autoMergeTimer = 0; let isRobotMerging = false; 
+        let draggingIdx = -1; const SELL_THRESHOLD = 60; 
 
         window.rankingDataCache = {};
 
+        // 더 방대한 단위를 지원하도록 확장된 숫자 포맷
         window.formatCompactNumber = (num) => {
+            if (num === Infinity || num >= 1e308) return "MAX";
             if (num < 10000) return Math.floor(num).toLocaleString();
-            if (num < 1000000) return parseFloat((num / 1000).toFixed(2)) + 'K';
-            if (num < 1000000000) return parseFloat((num / 1000000).toFixed(2)) + 'M';
-            if (num < 1000000000000) return parseFloat((num / 1000000000).toFixed(2)) + 'B';
-            return parseFloat((num / 1000000000000).toFixed(2)) + 'T';
+            const units = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg"];
+            const tier = Math.floor(Math.log10(Math.max(1, num)) / 3);
+            if(tier < units.length) {
+                return parseFloat((num / Math.pow(10, tier * 3)).toFixed(2)) + units[tier];
+            }
+            return num.toExponential(2);
         };
 
         window.formatTimeAgo = (ts) => {
@@ -532,19 +545,24 @@
             return window.formatCompactNumber(num);
         }
 
-        function getBorderColor(lv) {
-            if (lv === 'LUCKY') return '#ffab00'; 
-            if (lv <= 10) return 'transparent';
-            if (lv <= 20) return '#34c759'; 
-            if (lv <= 30) return '#007aff'; 
-            if (lv <= 40) return '#af52de'; 
-            return '#ff3b30'; 
+        // 테두리 동적 그라데이션 전환 로직 (단계 간 미세하게 색상 변화, 5레벨마다 큰 테마 변화 체감)
+        function getBorderStyle(lv) {
+            if (lv === 'LUCKY') return { border: '3px solid #ffab00', boxShadow: '0 0 15px rgba(255, 171, 0, 0.5)' };
+            if (lv <= 5) return { border: '3px solid transparent' };
+            
+            // hue를 단계별로 미세하게 이동시킴
+            let tier = Math.floor((lv-1) / 5); 
+            let step = (lv-1) % 5; 
+            let hues = [0, 120, 210, 280, 0, 45, 180, 300, 30, 150, 330, 90, 240, 60, 200, 320, 10, 190]; // 90단계 커버
+            let baseHue = hues[tier % hues.length];
+            let actualHue = baseHue + (step * 10); // 한 단계마다 10씩 색상 쉬프트 (그라데이션 효과)
+            
+            return { border: `3px solid hsl(${actualHue}, 80%, 55%)`, boxShadow: `inset 0 0 8px hsl(${actualHue}, 80%, 55%, 0.2)` };
         }
 
         function initGrid() {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
-            
             let totalSlots = game.is5x5Unlocked ? 25 : 16;
             if (game.is5x5Unlocked) grid.classList.add('grid-5x5');
             else grid.classList.remove('grid-5x5');
@@ -557,19 +575,32 @@
             }
         }
 
+        // 동적 기본 재료 및 확률 로직 (상위 레벨 도달 시 베이스 아이템 동적 확장)
         window.getSpawnProbabilities = function() {
-            let p6 = game.unlockedBaseLv >= 6 ? Math.min(0.18, Math.max(0, (game.maxLv - 24) * 0.02)) : 0;
-            let p5 = game.unlockedBaseLv >= 5 ? Math.min(0.20, Math.max(0, (game.maxLv - 19) * 0.025)) : 0;
-            let p4 = game.unlockedBaseLv >= 4 ? Math.min(0.25, Math.max(0, (game.maxLv - 14) * 0.03)) : 0;
-            let p3 = game.unlockedBaseLv >= 3 ? Math.min(0.30, Math.max(0, (game.maxLv - 9) * 0.04)) : 0;
-            let p2 = game.unlockedBaseLv >= 2 ? Math.min(0.40, Math.max(0, (game.maxLv - 4) * 0.06)) : 0;
-            let totalUpper = p6 + p5 + p4 + p3 + p2;
-            if (totalUpper > 0.90) { 
-                let scale = 0.90 / totalUpper;
-                p6 *= scale; p5 *= scale; p4 *= scale; p3 *= scale; p2 *= scale;
+            let maxB = game.unlockedBaseLv || 1;
+            let probs = {};
+            let totalUpper = 0;
+            
+            // 최대 언락된 베이스 레벨부터 하위 5개 레벨까지 등장 확률 부여 (최대 6종 동시 등장)
+            let lowerBound = Math.max(1, maxB - 5);
+            for (let i = maxB; i >= lowerBound; i--) {
+                let diff = game.maxLv - ((i-1)*5); 
+                let p = Math.min(0.25, Math.max(0.02, diff * 0.02)); // 차이가 클수록 확률 증가
+                if (i === 1) p = 0; // 1레벨은 나중에 남은 확률 몰빵
+                else {
+                    probs[i] = p;
+                    totalUpper += p;
+                }
             }
-            let p1 = 1.0 - (p6 + p5 + p4 + p3 + p2);
-            return { p1, p2, p3, p4, p5, p6 };
+            
+            if (totalUpper > 0.90) {
+                let scale = 0.90 / totalUpper;
+                for (let k in probs) probs[k] *= scale;
+                totalUpper = 0.90;
+            }
+            
+            probs[1] = 1.0 - totalUpper;
+            return probs;
         };
 
         window.spawnItem = function(isManual = false) {
@@ -597,12 +628,10 @@
                 return;
             }
 
-            let newUnlockedLv = 1;
-            if (game.maxLv >= 25) newUnlockedLv = 6;
-            else if (game.maxLv >= 20) newUnlockedLv = 5;
-            else if (game.maxLv >= 15) newUnlockedLv = 4;
-            else if (game.maxLv >= 10) newUnlockedLv = 3;
-            else if (game.maxLv >= 5) newUnlockedLv = 2;
+            // 동적 언락 로직: 5레벨 도달할 때마다 1개의 베이스 재료 추가 해금 (최대치 제한 X, 아이템 개수에 맞게 제한)
+            let maxAvailableBase = Math.floor((ITEM_DATA.length - 10) / 5) + 1; 
+            let calculatedBase = Math.floor((game.maxLv - 1) / 5) + 1;
+            let newUnlockedLv = Math.min(maxAvailableBase, Math.max(1, calculatedBase));
 
             if (!game.unlockedBaseLv) game.unlockedBaseLv = 1;
 
@@ -613,14 +642,17 @@
 
             const probs = getSpawnProbabilities();
             let r = Math.random();
+            let cumulative = 0;
             let spawnLv = 1;
             
-            if (r < probs.p6) spawnLv = 6;
-            else if (r < probs.p6 + probs.p5) spawnLv = 5;
-            else if (r < probs.p6 + probs.p5 + probs.p4) spawnLv = 4;
-            else if (r < probs.p6 + probs.p5 + probs.p4 + probs.p3) spawnLv = 3;
-            else if (r < probs.p6 + probs.p5 + probs.p4 + probs.p3 + probs.p2) spawnLv = 2;
-            else spawnLv = 1;
+            let sortedKeys = Object.keys(probs).map(Number).sort((a,b)=>b-a);
+            for (let k of sortedKeys) {
+                cumulative += probs[k];
+                if (r <= cumulative) {
+                    spawnLv = k;
+                    break;
+                }
+            }
             
             addItem(spawnLv, emptyIdx, true);
             SaveSystem.saveLocal();
@@ -636,13 +668,12 @@
                 item.innerHTML = "🛎️"; 
                 item.classList.add('item-lucky', 'anim-pulse');
                 item.dataset.lv = 'LUCKY';
+                Object.assign(item.style, getBorderStyle('LUCKY'));
             } else {
                 item.innerHTML = ITEM_DATA[lv-1] || "👑"; 
                 item.dataset.lv = lv;
+                Object.assign(item.style, getBorderStyle(lv));
             }
-
-            const bColor = getBorderColor(lv);
-            item.style.border = bColor !== 'transparent' ? `3px solid ${bColor}` : '3px solid transparent';
             
             slot.appendChild(item);
             game.slots[idx] = lv;
@@ -699,12 +730,10 @@
                 item.innerHTML = ITEM_DATA[resultLv-1] || "👑";
                 item.style.background = "var(--card-bg)";
                 item.style.color = "var(--main-text)";
-                item.style.boxShadow = "0 8px 16px rgba(0,0,0,0.1)";
                 item.style.textShadow = "none";
                 item.style.pointerEvents = "none"; 
                 
-                const bColor = getBorderColor(resultLv);
-                item.style.border = bColor !== "transparent" ? `3px solid ${bColor}` : "3px solid transparent";
+                Object.assign(item.style, getBorderStyle(resultLv));
                 
                 gsap.from(item, { scale: 0, duration: 0.5, ease: "elastic.out(1, 0.5)" });
                 showToast(`럭키! ✨ 깜짝 요리(Lv.${resultLv})가 등장했습니다!`);
@@ -820,6 +849,7 @@
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebar-overlay');
             const navUpgrade = document.getElementById('nav-upgrade');
+            const navAdmin = document.getElementById('nav-admin');
             
             if(game.score >= 2000000000) {
                 game.upgradesUnlocked = true;
@@ -828,6 +858,9 @@
                 game.upgradesUnlocked = false;
                 navUpgrade.style.display = 'none';
             }
+            
+            if(game.adminMode) navAdmin.style.display = 'flex';
+            else navAdmin.style.display = 'none';
             
             const isOpen = sb.classList.toggle('open');
             ov.style.display = isOpen ? 'block' : 'none';
@@ -844,6 +877,11 @@
             SaveSystem.saveLocal();
         };
 
+        function getNicknameStyle(effectId) {
+            let effect = NICKNAME_EFFECTS.find(e => e.id === effectId) || NICKNAME_EFFECTS[0];
+            return effect.style;
+        }
+
         window.showPlayerProfile = (uid) => {
             const data = window.rankingDataCache[uid];
             if (!data) return;
@@ -859,11 +897,13 @@
             let iconAnim = iconObj.anim;
             let colorAnim = colorObj.anim;
             let bgStyle = bgColor.includes('gradient') ? `background-image: ${bgColor};` : `background-color: ${bgColor};`;
+            
+            let nameStyle = getNicknameStyle(data.nicknameEffect || "n_def");
 
             body.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
                     <div class="avatar-circle ${colorAnim}" style="width: 80px; height: 80px; border-radius: 50%; ${bgStyle} display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><div class="${iconAnim}">${icon}</div></div>
-                    <h3 style="margin: 0 0 5px; font-size: 22px;">${data.nickname || '셰프'}</h3>
+                    <h3 style="margin: 0 0 5px; font-size: 22px; ${nameStyle}">${data.nickname || '셰프'}</h3>
                     <div style="color: var(--gold); font-weight: 800; font-size: 16px; margin-bottom: 20px;">🏆 ${formatCompactNumber(data.score || 0)}</div>
 
                     <div class="stats-box" style="text-align: left;">
@@ -883,7 +923,6 @@
             document.getElementById('icon-size-label').innerText = val + '%';
             document.documentElement.style.setProperty('--icon-scale', game.iconSize / 100);
             
-            // 크기 미리보기 업데이트
             const previewIcon = document.getElementById('preview-new-icon');
             if(previewIcon) {
                 previewIcon.style.fontSize = `calc(40px * ${game.iconSize / 100})`;
@@ -895,12 +934,24 @@
             const title = document.getElementById('modal-title');
             body.innerHTML = '';
 
-            if (type === 'upgrade') {
-                if (game.score < 2000000000) {
-                    showToast("점수 20억을 먼저 달성하세요!");
-                    closeModal();
-                    return;
-                }
+            if (type === 'admin') {
+                if(!game.adminMode) return;
+                title.innerText = '관리자 패널 🛠️';
+                body.innerHTML = `
+                    <div style="background:var(--body-bg); padding:20px; border-radius:15px; margin-bottom:15px; text-align:left;">
+                        <label>Gold 설정</label>
+                        <input type="number" id="adm-gold" class="admin-input" value="${game.gold}">
+                        <label>Score 설정</label>
+                        <input type="number" id="adm-score" class="admin-input" value="${game.score}">
+                        <label>Max Level 설정</label>
+                        <input type="number" id="adm-maxlv" class="admin-input" value="${game.maxLv}">
+                        <button class="shop-btn btn-equip" style="padding:15px;" onclick="applyAdminStats()">적용하기</button>
+                    </div>
+                    <button class="shop-btn btn-danger" style="padding:15px;" onclick="game.slots.fill(null); initGrid(); SaveSystem.saveLocal(); closeModal(); showToast('보드 초기화!');">보드 비우기</button>
+                `;
+            }
+            else if (type === 'upgrade') {
+                if (game.score < 2000000000) { showToast("점수 20억을 먼저 달성하세요!"); closeModal(); return; }
                 title.innerText = '로봇 & 확장 🤖';
                 
                 let spawnCost = 100000000 * Math.pow(3, game.autoSpawnLv);
@@ -961,9 +1012,24 @@
             else if(type === 'shop') {
                 title.innerText = '꾸미기 🛒';
                 let html = ``;
+                
+                // T단위 달성 시 닉네임 이펙트 상점 노출
+                if(game.unlockedTShop) {
+                    html += `<div class="shop-section-title" style="color:#ff00cc;">✨ 닉네임 이펙트 (초월)</div><div style="display:flex; flex-direction:column; gap:10px; margin-bottom:30px;">`;
+                    NICKNAME_EFFECTS.forEach(item => {
+                        const isOwned = (game.ownedNicknames || ["n_def"]).includes(item.id);
+                        const isEquipped = game.nicknameEffect === item.id;
+                        let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" style="width:80px;" disabled>장착 중</button>`
+                            : isOwned ? `<button class="shop-btn btn-equip" style="width:80px;" onclick="equipItem('nickname', '${item.id}')">장착</button>`
+                            : `<button class="shop-btn btn-buy" style="width:80px; background:linear-gradient(to right, #ff00cc, #333399);" onclick="buyItem('nickname', '${item.id}')">$${formatPrice(item.price)}</button>`;
+                        html += `<div class="shop-card" style="flex-direction:row; justify-content:space-between; padding:15px 20px;"><div style="font-weight:800; font-size:18px; ${item.style}">${item.name}</div>${btnHtml}</div>`;
+                    });
+                    html += `</div>`;
+                }
 
                 html += `<div class="shop-section-title">아바타</div><div class="shop-grid">`;
                 SHOP_ICONS.forEach(item => {
+                    if (item.price >= 1e12 && !game.unlockedTShop) return; // T단위 미달성 시 숨김
                     const isOwned = game.ownedIcons.includes(item.icon);
                     const isEquipped = game.profileIcon === item.icon;
                     let btnHtml = isEquipped ? `<button class="shop-btn btn-equipped" disabled>장착 중</button>`
@@ -974,6 +1040,7 @@
 
                 html += `</div><div class="shop-section-title">배경</div><div class="shop-grid">`;
                 SHOP_COLORS.forEach(item => {
+                    if (item.price >= 1e12 && !game.unlockedTShop) return; // T단위 미달성 시 숨김
                     const isOwned = game.ownedColors.includes(item.id);
                     const isEquipped = SHOP_COLORS.find(c => c.id === item.id).color === game.profileColor;
                     let bgStyle = item.color.includes('gradient') ? `background-image: ${item.color};` : `background-color: ${item.color};`;
@@ -1012,6 +1079,7 @@
                         let iconAnim = iconObj.anim;
                         let colorAnim = colorObj.anim;
                         let bgStyle = bgColor.includes('gradient') ? `background-image: ${bgColor};` : `background-color: ${bgColor};`;
+                        let nameStyle = getNicknameStyle(data.nicknameEffect || "n_def");
 
                         let lastActive = data.lastActive || 0;
                         let isOnline = (now - lastActive) < 3 * 60 * 1000;
@@ -1030,7 +1098,7 @@
                                 <div style="font-size:18px; font-weight:800; width:45px; text-align:center; color:var(--sub-text);">${rankIcon}</div>
                                 <div class="avatar-circle ${colorAnim}" style="width: 50px; height: 50px; border-radius: 50%; ${bgStyle} display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><div class="${iconAnim}">${icon}</div></div>
                                 <div style="flex:1;">
-                                    <div style="font-weight:800; font-size:15px; color:var(--main-text);">${data.nickname || '셰프'} ${isMe ? '<span style="color:var(--blue); font-size:12px;">(나)</span>' : ''}</div>
+                                    <div style="font-weight:800; font-size:15px; color:var(--main-text); ${nameStyle}">${data.nickname || '셰프'} ${isMe ? '<span style="color:var(--blue); font-size:12px;">(나)</span>' : ''}</div>
                                     <div style="font-size:13px; color:var(--gold); font-weight:700; margin: 3px 0;">🏆 ${formatCompactNumber(data.score || 0)}</div>
                                     <div>${statusHtml}</div>
                                 </div>
@@ -1104,18 +1172,31 @@
                 html += `<div style="text-align: center; margin-bottom: 15px; color: var(--sub-text); font-size: 13px; font-weight: 600;">현재 최고 레벨(Lv.${game.maxLv}) 기준 등장 확률입니다.</div>`;
                 html += `<div class="stats-box">`;
                 html += `<div class="stats-row"><span>🛎️ 럭키(황금 뚜껑)</span><span class="stats-val" style="color:var(--gold);">0.5%</span></div>`;
-                if(game.unlockedBaseLv >= 6) html += `<div class="stats-row"><span>${ITEM_DATA[5]} (Lv.6)</span><span class="stats-val">${(probs.p6 * 99.5).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 5) html += `<div class="stats-row"><span>${ITEM_DATA[4]} (Lv.5)</span><span class="stats-val">${(probs.p5 * 99.5).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 4) html += `<div class="stats-row"><span>${ITEM_DATA[3]} (Lv.4)</span><span class="stats-val">${(probs.p4 * 99.5).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 3) html += `<div class="stats-row"><span>${ITEM_DATA[2]} (Lv.3)</span><span class="stats-val">${(probs.p3 * 99.5).toFixed(1)}%</span></div>`;
-                if(game.unlockedBaseLv >= 2) html += `<div class="stats-row"><span>${ITEM_DATA[1]} (Lv.2)</span><span class="stats-val">${(probs.p2 * 99.5).toFixed(1)}%</span></div>`;
-                html += `<div class="stats-row"><span>${ITEM_DATA[0]} (Lv.1)</span><span class="stats-val">${(probs.p1 * 99.5).toFixed(1)}%</span></div>`;
+                
+                let sortedKeys = Object.keys(probs).map(Number).sort((a,b)=>b-a);
+                for (let k of sortedKeys) {
+                    if (k === 1) {
+                        html += `<div class="stats-row"><span>${ITEM_DATA[k-1]} (Lv.${k})</span><span class="stats-val">${(probs[k] * 99.5).toFixed(1)}%</span></div>`;
+                    } else {
+                        html += `<div class="stats-row"><span>${ITEM_DATA[k-1]} (Lv.${k})</span><span class="stats-val">${(probs[k] * 99.5).toFixed(1)}%</span></div>`;
+                    }
+                }
+                
                 html += `</div></div>`;
                 body.innerHTML = html;
             }
 
             document.getElementById('modal-overlay').style.display = 'flex';
             setTimeout(() => { document.getElementById('main-modal').style.transform = 'translateY(0)'; }, 10);
+        };
+
+        window.applyAdminStats = () => {
+            if(!game.adminMode) return;
+            game.gold = parseFloat(document.getElementById('adm-gold').value) || 0;
+            game.score = parseFloat(document.getElementById('adm-score').value) || 0;
+            game.maxLv = parseInt(document.getElementById('adm-maxlv').value) || 1;
+            SaveSystem.saveLocal();
+            showToast("수치가 적용되었습니다!");
         };
 
         window.buy5x5 = () => {
@@ -1162,6 +1243,11 @@
                 const itemObj = SHOP_COLORS.find(c => c.id === itemId);
                 if(game.gold < itemObj.price) { showToast("골드가 부족합니다! 💸"); return; }
                 game.gold -= itemObj.price; game.ownedColors.push(itemId); game.profileColor = itemObj.color; 
+            } else if (type === 'nickname') {
+                if(!game.ownedNicknames) game.ownedNicknames = ["n_def"];
+                const itemObj = NICKNAME_EFFECTS.find(n => n.id === itemId);
+                if(game.gold < itemObj.price) { showToast("골드가 부족합니다! 💸"); return; }
+                game.gold -= itemObj.price; game.ownedNicknames.push(itemId); game.nicknameEffect = itemId;
             }
             SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); 
             applyProfileUI(); openModal('shop'); 
@@ -1170,6 +1256,7 @@
         window.equipItem = (type, itemId) => {
             if(type === 'icon') game.profileIcon = itemId;
             else if(type === 'color') game.profileColor = SHOP_COLORS.find(c => c.id === itemId).color;
+            else if(type === 'nickname') game.nicknameEffect = itemId;
             SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); 
             applyProfileUI(); openModal('shop');
         };
@@ -1191,17 +1278,16 @@
                 avatarBg.style.backgroundImage = 'none';
             }
             avatarBg.className = "avatar-circle " + colorObj.anim;
+            
+            const sbNickname = document.getElementById('sb-nickname');
+            sbNickname.style.cssText = `font-weight: 800; font-size: 18px; margin-bottom: 5px; ${getNicknameStyle(game.nicknameEffect || "n_def")}`;
         }
 
         window.toggleDarkMode = () => {
             game.darkMode = !game.darkMode;
-            if(game.darkMode) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
+            if(game.darkMode) { document.body.classList.add('dark-mode'); } 
+            else { document.body.classList.remove('dark-mode'); }
             SaveSystem.saveLocal();
-            console.log("다크모드:", game.darkMode);
         };
 
         window.closeModal = () => {
@@ -1211,11 +1297,7 @@
 
         window.exportData = () => {
             try {
-                if (!auth.currentUser) {
-                    showToast("로그인이 필요합니다. ❌");
-                    return;
-                }
-                
+                if (!auth.currentUser) { showToast("로그인이 필요합니다. ❌"); return; }
                 const dataWithUid = { ...game, uid: auth.currentUser.uid };
                 const dataStr = JSON.stringify(dataWithUid, null, 2);
                 const dataBlob = new Blob([dataStr], {type: 'application/json'});
@@ -1223,154 +1305,66 @@
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = `mergebob_backup_${auth.currentUser.uid}_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
                 URL.revokeObjectURL(url);
                 showToast("데이터가 내보내기되었습니다! 💾");
             } catch (error) {
-                console.error("Export error:", error);
-                showToast("내보내기 실패 ❌");
+                console.error("Export error:", error); showToast("내보내기 실패 ❌");
             }
         };
 
         window.importData = () => {
-            console.log("importData 함수 호출됨");
             const fileInput = document.getElementById('import-file');
-            if (!fileInput) {
-                console.error("import-file 요소를 찾을 수 없음");
-                showToast("파일 입력 요소를 찾을 수 없습니다. ❌");
-                return;
-            }
-            console.log("fileInput 요소 찾음:", fileInput);
+            if (!fileInput) return;
             
             fileInput.onchange = (e) => {
-                console.log("onchange 이벤트 발생");
                 const file = e.target.files[0];
-                if (!file) {
-                    console.log("파일 선택 안됨");
-                    showToast("파일을 선택해주세요. ❌");
-                    return;
-                }
-                console.log("선택된 파일:", file.name, file.size, file.type);
-                
-                if (!file.name.endsWith('.json')) {
-                    console.log("파일 타입 검증 실패");
-                    showToast("JSON 파일만 지원됩니다. ❌");
-                    return;
-                }
-                
-                if (file.size > 10 * 1024 * 1024) {
-                    console.log("파일 크기 초과");
-                    showToast("파일 크기가 너무 큽니다 (최대 10MB). ❌");
-                    return;
-                }
+                if (!file) { showToast("파일을 선택해주세요. ❌"); return; }
+                if (!file.name.endsWith('.json')) { showToast("JSON 파일만 지원됩니다. ❌"); return; }
+                if (file.size > 10 * 1024 * 1024) { showToast("파일 크기가 너무 큽니다 (최대 10MB). ❌"); return; }
                 
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    console.log("FileReader onload 호출됨");
                     try {
                         const importedData = JSON.parse(event.target.result);
-                        console.log("JSON 파싱 성공:", importedData);
-                        
-                        if (!importedData.uid) {
-                            throw new Error("백업 파일에 사용자 정보가 없습니다");
-                        }
-                        if (importedData.uid !== auth.currentUser.uid) {
-                            throw new Error("다른 계정의 백업 파일입니다");
-                        }
-                        
-                        if (typeof importedData !== 'object' || importedData === null) {
-                            throw new Error("데이터가 객체가 아닙니다");
-                        }
-                        if (typeof importedData.gold !== 'number' || importedData.gold < 0) {
-                            throw new Error("gold 값이 유효하지 않습니다");
-                        }
-                        if (!Array.isArray(importedData.slots)) {
-                            throw new Error("slots가 배열이 아닙니다");
-                        }
-                        if (typeof importedData.score !== 'number' || importedData.score < 0) {
-                            throw new Error("score 값이 유효하지 않습니다");
-                        }
-                        console.log("데이터 검증 통과");
-                        
-                        try {
-                            const backupData = { ...game, uid: auth.currentUser.uid };
-                            const backupStr = JSON.stringify(backupData, null, 2);
-                            const backupBlob = new Blob([backupStr], {type: 'application/json'});
-                            const backupUrl = URL.createObjectURL(backupBlob);
-                            const backupLink = document.createElement('a');
-                            backupLink.href = backupUrl;
-                            backupLink.download = `mergebob_auto_backup_${auth.currentUser.uid}_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-                            document.body.appendChild(backupLink);
-                            backupLink.click();
-                            document.body.removeChild(backupLink);
-                            URL.revokeObjectURL(backupUrl);
-                            console.log("자동 백업 생성됨");
-                        } catch (backupError) {
-                            console.warn("자동 백업 실패:", backupError);
-                        }
+                        if (!importedData.uid || importedData.uid !== auth.currentUser.uid) throw new Error("유효하지 않은 백업입니다.");
                         
                         const { uid, ...cleanData } = importedData;
-                        const oldGame = { ...game };
                         game = { ...game, ...cleanData };
-                        console.log("데이터 적용됨");
                         
-                        try {
-                            initGrid();
-                            game.slots.forEach((lv, i) => { if(lv && lv !== 'LOCK') addItem(lv, i, false); });
-                            if(game.darkMode) document.body.classList.add('dark-mode');
-                            else document.body.classList.remove('dark-mode');
-                            
-                            if(game.iconSize === undefined) game.iconSize = 100;
-                            document.documentElement.style.setProperty('--icon-scale', game.iconSize / 100);
+                        initGrid();
+                        game.slots.forEach((lv, i) => { if(lv && lv !== 'LOCK') addItem(lv, i, false); });
+                        if(game.darkMode) document.body.classList.add('dark-mode');
+                        else document.body.classList.remove('dark-mode');
+                        
+                        if(game.iconSize === undefined) game.iconSize = 100;
+                        document.documentElement.style.setProperty('--icon-scale', game.iconSize / 100);
 
-                            applyProfileUI();
-                            console.log("UI 업데이트 완료");
-                            
-                            SaveSystem.saveToCloudImmediate();
-                            
-                            showToast("데이터가 성공적으로 가져오기되었습니다! 🔄 (자동 백업 생성됨)");
-                            closeModal();
-                        } catch (uiError) {
-                            game = oldGame;
-                            console.error("UI 업데이트 실패:", uiError);
-                            throw new Error("데이터 적용 중 오류가 발생했습니다");
-                        }
-                        
+                        applyProfileUI();
+                        SaveSystem.saveToCloudImmediate();
+                        showToast("데이터 복원 성공! 🔄"); closeModal();
                     } catch (error) {
-                        console.error("Import error:", error);
                         showToast(`가져오기 실패: ${error.message} ❌`);
                     }
                 };
-                
-                reader.onerror = () => {
-                    console.error("FileReader error");
-                    showToast("파일 읽기 실패 ❌");
-                };
-                
-                console.log("FileReader.readAsText 호출");
                 reader.readAsText(file);
             };
-            
             fileInput.value = '';
-            console.log("fileInput 초기화됨");
         };
 
         window.resetData = () => {
             const email = auth.currentUser ? auth.currentUser.email : "";
-            const input = prompt(`정말로 모든 데이터를 초기화하시겠습니까? 복구할 수 없습니다!\n\n보안을 위해 계정 이메일을 입력해주세요: ${email}\n\n초기화하려면 정확히 이메일을 입력하세요.`);
+            const input = prompt(`데이터 초기화(이메일 입력: ${email}):`);
+            
+            if(input === "/admin 1") { game.adminMode = true; showToast("관리자 모드 활성화됨 🛠️"); return; }
+            if(input === "/admin 0") { game.adminMode = false; showToast("관리자 모드 해제됨"); return; }
+
             if(input === email) {
-                // 🛡️ 상수 데이터를 사용하여 완전 초기화
                 game = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
-                game.customNickname = ""; // 초기화 시 닉네임도 비우기
-                
-                if (auth.currentUser) {
-                    localStorage.removeItem(`mergeBob_${auth.currentUser.uid}`);
-                    SaveSystem.saveToCloudImmediate(); 
-                }
-                initGrid(); SaveSystem.saveLocal(); applyProfileUI(); closeModal(); showToast("데이터가 완전히 초기화되었습니다.");
-            } else if (input !== null) { showToast("이메일이 일치하지 않습니다. 초기화가 취소되었습니다."); }
+                game.customNickname = ""; 
+                if (auth.currentUser) { localStorage.removeItem(`mergeBob_${auth.currentUser.uid}`); SaveSystem.saveToCloudImmediate(); }
+                initGrid(); SaveSystem.saveLocal(); applyProfileUI(); closeModal(); showToast("데이터가 초기화되었습니다.");
+            } else if (input !== null) { showToast("이메일 불일치. 취소됨."); }
         };
 
         function setupBottomSheet() {
@@ -1471,18 +1465,10 @@
         let lastRobotTick = Date.now();
         function robotLoop() {
             if (!auth.currentUser) { lastRobotTick = Date.now(); requestAnimationFrame(robotLoop); return; }
-            
             let now = Date.now(); let dt = now - lastRobotTick; lastRobotTick = now;
 
-            if (game.score < 2000000000) {
-                requestAnimationFrame(robotLoop);
-                return;
-            }
-
-            if (dt > 1000) {
-                requestAnimationFrame(robotLoop);
-                return;
-            }
+            if (game.score < 2000000000) { requestAnimationFrame(robotLoop); return; }
+            if (dt > 1000) { requestAnimationFrame(robotLoop); return; }
 
             if(game.autoSpawnLv > 0 && game.autoSpawnActive !== false) {
                 autoSpawnTimer += dt;
@@ -1503,11 +1489,7 @@
         }
 
         function gameLoop() {
-            // 🛡️ 로그인 되어있지 않으면 점수를 올리지 않고 대기
-            if(!auth.currentUser) {
-                setTimeout(gameLoop, 1000);
-                return;
-            }
+            if(!auth.currentUser) { setTimeout(gameLoop, 1000); return; }
 
             let income = 0;
             game.slots.forEach(lv => { if(lv && lv !== 'LUCKY' && lv !== 'LOCK') income += Math.pow(2, lv) - 1; });
@@ -1521,6 +1503,15 @@
                 confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
             }
 
+            // T(1조) 달성 알림
+            if (game.gold >= 1000000000000 && !game.unlockedTShop) {
+                game.unlockedTShop = true;
+                const popup = document.getElementById('tshop-popup');
+                popup.style.display = 'flex'; void popup.offsetWidth; popup.classList.add('show');
+                confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 }, colors: ['#ff00cc', '#333399', '#ffffff'] });
+                SaveSystem.saveLocal();
+            }
+
             document.getElementById('gold-val').innerText = formatCompactNumber(game.gold);
             document.getElementById('gps-val').innerText = formatCompactNumber(income);
             
@@ -1532,63 +1523,35 @@
         }
 
         async function loadGameFromDB(user) {
-            console.log("loadGameFromDB 시작, user:", user.uid);
-            let cloudData = null;
-            let localData = null;
+            let cloudData = null; let localData = null;
 
             try {
-                console.log("클라우드 데이터 로드 시도");
                 const snap = await getDoc(doc(db, "users", user.uid));
-                if(snap.exists()) {
-                    cloudData = snap.data();
-                    console.log("클라우드 데이터 로드 성공:", cloudData);
-                } else {
-                    console.log("클라우드 데이터 없음");
-                }
-            } catch(e) {
-                console.error("클라우드 로드 실패", e);
-            }
+                if(snap.exists()) cloudData = snap.data();
+            } catch(e) {}
 
             try {
-                console.log("로컬 데이터 로드 시도");
                 const localStr = localStorage.getItem(`mergeBob_${user.uid}`);
-                if (localStr) {
-                    localData = JSON.parse(localStr);
-                    console.log("로컬 데이터 로드 성공:", localData);
-                } else {
-                    console.log("로컬 데이터 없음");
-                }
-            } catch(e) {
-                console.error("로컬 데이터 파싱 실패", e);
-            }
+                if (localStr) localData = JSON.parse(localStr);
+            } catch(e) {}
 
             let finalData = null;
             if (cloudData && localData) {
                 let cTime = cloudData.lastSaveTime || 0;
                 let lTime = localData.lastSaveTime || 0;
                 
-                if (cTime >= lTime) {
-                    console.log("클라우드 데이터가 최신입니다.");
-                    finalData = cloudData;
-                } else {
-                    console.log("로컬 데이터가 더 최신입니다. 클라우드에 덮어씁니다.");
-                    finalData = localData;
-                    game = { ...game, ...finalData };
-                    SaveSystem.saveToCloudImmediate();
-                }
-            } else {
-                finalData = cloudData || localData;
-            }
-
-            console.log("최종 데이터:", finalData);
+                if (cTime >= lTime) finalData = cloudData;
+                else { finalData = localData; game = { ...game, ...finalData }; SaveSystem.saveToCloudImmediate(); }
+            } else finalData = cloudData || localData;
 
             if(finalData) {
                 game = { ...game, ...finalData }; 
-                
                 if(game.slots) game.slots = game.slots.map(s => s === 'LOCK' ? null : s);
                 
                 if(!game.ownedIcons) game.ownedIcons = ["👨‍🍳"];
                 if(!game.ownedColors) game.ownedColors = ["c_def"];
+                if(!game.ownedNicknames) game.ownedNicknames = ["n_def"];
+                if(!game.nicknameEffect) game.nicknameEffect = "n_def";
                 if(!game.unlockedBaseLv) game.unlockedBaseLv = 1;
                 
                 if(game.autoSpawnActive === undefined) game.autoSpawnActive = true;
@@ -1627,9 +1590,7 @@
                         }
                     }
                 }
-            } else {
-                SaveSystem.saveLocal(); 
-            }
+            } else SaveSystem.saveLocal(); 
 
             applyProfileUI();
             document.getElementById('loading-screen').style.opacity = '0';
@@ -1641,13 +1602,8 @@
         window.loginWithGoogle = () => { signInWithPopup(auth, new GoogleAuthProvider()).catch(() => showToast("로그인 실패")); };
 
         window.logout = async () => {
-            try {
-                await signOut(auth);
-                showToast("로그아웃되었습니다.");
-            } catch (error) {
-                console.error("로그아웃 실패:", error);
-                showToast("로그아웃 실패");
-            }
+            try { await signOut(auth); showToast("로그아웃되었습니다."); } 
+            catch (error) { showToast("로그아웃 실패"); }
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -1660,7 +1616,6 @@
                 showToast(`${user.displayName} 셰프님 환영합니다!`);
                 loadGameFromDB(user);
             } else {
-                // 🛡️ 유저가 없을 때 완벽하게 초기화
                 resetGameState();
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('login-screen').style.opacity = '1';
@@ -1669,10 +1624,7 @@
         });
 
         window.addEventListener("beforeunload", () => { 
-            if(auth.currentUser) {
-                SaveSystem.saveLocal(); 
-                SaveSystem.saveToCloudImmediate(); 
-            }
+            if(auth.currentUser) { SaveSystem.saveLocal(); SaveSystem.saveToCloudImmediate(); }
         });
 
         initGrid(); setupBottomSheet(); gameLoop(); requestAnimationFrame(robotLoop);
