@@ -13,6 +13,7 @@
             --card-bg: #ffffff; --body-bg: #f5f5f7; --modal-overlay: rgba(0, 0, 0, 0.4); --blue: #007aff;
             --danger: #ff3b30; --line: rgba(0,0,0,0.08); --gold: #ffab00; --shop-card: #ffffff;
             --online: #34c759; --robot: #af52de;
+            --icon-scale: 1; /* 아이콘 크기 조절용 변수 */
         }
         body.dark-mode {
             --main-text: #f5f5f7; --sub-text: #a1a1a6;
@@ -58,7 +59,7 @@
         body.dark-mode #grid { box-shadow: inset 0 4px 10px rgba(0,0,0,0.3); }
 
         #grid.grid-5x5 { grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 10px; }
-        #grid.grid-5x5 .item { font-size: clamp(20px, 5.5vw, 26px); }
+        #grid.grid-5x5 .item { font-size: calc(clamp(20px, 5.5vw, 26px) * var(--icon-scale)); }
 
         .slot {
             width: 100%; aspect-ratio: 1 / 1; background: var(--card-bg);
@@ -69,7 +70,7 @@
 
         .item {
             width: 100%; height: 100%; border-radius: 20%; display: flex; align-items: center; justify-content: center;
-            font-size: clamp(24px, 7vw, 34px); position: absolute; z-index: 2;
+            font-size: calc(clamp(24px, 7vw, 34px) * var(--icon-scale)); position: absolute; z-index: 2;
             background: var(--card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.1); user-select: none; pointer-events: none;
             border: 3px solid transparent; transition: font-size 0.3s;
         }
@@ -401,7 +402,7 @@
             profileIcon: "👨‍🍳", profileColor: "#f5f5f7", ownedIcons: ["👨‍🍳"], ownedColors: ["c_def"],
             playTime: 0, offlineEarnings: 0, spawnCount: 0, mergeCount: 0, customNickname: "", unlockedBaseLv: 1,
             is5x5Unlocked: false, upgradesUnlocked: false, autoSpawnLv: 0, autoMergeLv: 0,
-            autoSpawnActive: true, autoMergeActive: true
+            autoSpawnActive: true, autoMergeActive: true, iconSize: 100
         };
 
         // 깊은 복사로 초기화
@@ -422,6 +423,7 @@
             document.getElementById('sb-nickname').innerText = '로딩 중...';
             document.getElementById('sb-score').innerText = '🏆 0';
             document.body.classList.remove('dark-mode');
+            document.documentElement.style.setProperty('--icon-scale', 1);
             applyProfileUI();
         }
 
@@ -496,7 +498,7 @@
                 if (this.autoSaveInterval) clearInterval(this.autoSaveInterval);
                 this.autoSaveInterval = setInterval(() => {
                     this.saveLocal(); 
-                }, 3000);
+                }, 12000); // 업데이트 잦음 방지: 3초 -> 12초 변경
             }
         };
 
@@ -876,6 +878,18 @@
             `;
         };
 
+        window.updateIconSize = (val) => {
+            game.iconSize = parseInt(val);
+            document.getElementById('icon-size-label').innerText = val + '%';
+            document.documentElement.style.setProperty('--icon-scale', game.iconSize / 100);
+            
+            // 크기 미리보기 업데이트
+            const previewIcon = document.getElementById('preview-new-icon');
+            if(previewIcon) {
+                previewIcon.style.fontSize = `calc(40px * ${game.iconSize / 100})`;
+            }
+        };
+
         window.openModal = async (type) => {
             const body = document.getElementById('modal-body');
             const title = document.getElementById('modal-title');
@@ -1049,6 +1063,21 @@
                             <button style="width: auto; padding: 10px 20px; font-size: 14px; background: var(--main-text); color: var(--card-bg);" onclick="changeNickname()">변경</button>
                         </div>
                     </div>
+                    
+                    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 12px; width: 100%;">
+                        <div style="display: flex; justify-content: space-between; width: 100%;">
+                            <span>아이콘(음식) 크기 조절: <span id="icon-size-label">${game.iconSize || 100}%</span></span>
+                        </div>
+                        
+                        <div style="position: relative; width: 100%; height: 90px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.03); border-radius: 15px; border: 1px dashed var(--line);">
+                            <div style="position: absolute; top: 10px; left: 15px; font-size: 11px; color: var(--sub-text); font-weight: 800;">크기 미리보기</div>
+                            <div style="position: absolute; font-size: calc(40px * ${(game.iconSize || 100) / 100}); opacity: 0.25; filter: grayscale(100%);">🧀</div>
+                            <div id="preview-new-icon" style="position: absolute; font-size: calc(40px * ${(game.iconSize || 100) / 100}); transition: font-size 0.1s ease-out;">🧀</div>
+                        </div>
+
+                        <input type="range" min="50" max="150" value="${game.iconSize || 100}" oninput="updateIconSize(this.value)" onchange="SaveSystem.saveLocal()" style="width: 100%; accent-color: var(--blue);">
+                    </div>
+
                     <div class="setting-row">
                         <span>다크 모드</span>
                         <label class="switch"><input type="checkbox" ${game.darkMode ? 'checked' : ''} onchange="toggleDarkMode()"><span class="slider"></span></label>
@@ -1292,6 +1321,10 @@
                             game.slots.forEach((lv, i) => { if(lv && lv !== 'LOCK') addItem(lv, i, false); });
                             if(game.darkMode) document.body.classList.add('dark-mode');
                             else document.body.classList.remove('dark-mode');
+                            
+                            if(game.iconSize === undefined) game.iconSize = 100;
+                            document.documentElement.style.setProperty('--icon-scale', game.iconSize / 100);
+
                             applyProfileUI();
                             console.log("UI 업데이트 완료");
                             
@@ -1560,7 +1593,10 @@
                 
                 if(game.autoSpawnActive === undefined) game.autoSpawnActive = true;
                 if(game.autoMergeActive === undefined) game.autoMergeActive = true;
+                if(game.iconSize === undefined) game.iconSize = 100;
                 
+                document.documentElement.style.setProperty('--icon-scale', game.iconSize / 100);
+
                 if(game.is5x5Unlocked && game.slots.length < 25) { game.slots.push(...Array(25 - game.slots.length).fill(null)); }
                 
                 initGrid();
